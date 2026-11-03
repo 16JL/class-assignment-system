@@ -1,0 +1,23 @@
+{
+  "name": "class-assignment-system",
+  "version": "1.0.0",
+  "description": "高校分班志愿填报系统 - 学生端填报 / 管理员端统计 / 实时数据大屏",
+  "main": "backend/server.js",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd backend && npm install",
+    "start": "cd backend && node server.js",
+    "init-db": "cd backend && python init_db.py"
+  },
+  "keywords": [
+    "分班",
+    "志愿填报",
+    "教育管理",
+    "Node.js",
+    "SQLite"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

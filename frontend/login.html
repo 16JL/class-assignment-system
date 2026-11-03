@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件工程系 - 分班志愿填报系统</title>
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<!-- White Navbar -->
+<nav class="top-navbar">
+  <div class="top-nav-left">
+    <img src="assets/logo.png" alt="软件工程系" class="top-nav-logo">
+    <span class="top-nav-title">方向志愿填报系统</span>
+  </div>
+</nav>
+
+<!-- Fireworks Canvas -->
+<canvas id="fireworksCanvas"></canvas>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Main Login Page -->
+<div class="login-page" id="loginPage">
+
+  <!-- Unified White Card Container -->
+  <div class="login-card" id="loginCard">
+
+    <!-- ===== LEFT SIDE - Animated Characters ===== -->
+    <div class="card-left" id="cardLeft">
+      <div class="characters-scene" id="characters-scene">
+        <!-- Purple character -->
+        <div class="character char-purple" id="char-purple">
+          <div class="eyes" id="purple-eyes" style="left:45px;top:40px;gap:28px;">
+            <div class="eyeball" id="purple-eye-l" style="width:18px;height:18px;"><div class="pupil" id="purple-pupil-l" style="width:7px;height:7px;"></div></div>
+            <div class="eyeball" id="purple-eye-r" style="width:18px;height:18px;"><div class="pupil" id="purple-pupil-r" style="width:7px;height:7px;"></div></div>
+          </div>
+        </div>
+        <!-- Black character -->
+        <div class="character char-black" id="char-black">
+          <div class="eyes" id="black-eyes" style="left:26px;top:32px;gap:20px;">
+            <div class="eyeball" id="black-eye-l" style="width:16px;height:16px;"><div class="pupil" id="black-pupil-l" style="width:6px;height:6px;"></div></div>
+            <div class="eyeball" id="black-eye-r" style="width:16px;height:16px;"><div class="pupil" id="black-pupil-r" style="width:6px;height:6px;"></div></div>
+          </div>
+        </div>
+        <!-- Orange character -->
+        <div class="character char-orange" id="char-orange">
+          <div class="eyes" id="orange-eyes" style="left:82px;top:90px;gap:28px;">
+            <div class="bare-pupil" id="orange-pupil-l"></div>
+            <div class="bare-pupil" id="orange-pupil-r"></div>
+          </div>
+          <div class="orange-mouth" id="orange-mouth" style="left:90px;top:120px;"></div>
+        </div>
+        <!-- Yellow character -->
+        <div class="character char-yellow" id="char-yellow">
+          <div class="eyes" id="yellow-eyes" style="left:52px;top:40px;gap:20px;">
+            <div class="bare-pupil" id="yellow-pupil-l"></div>
+            <div class="bare-pupil" id="yellow-pupil-r"></div>
+          </div>
+          <div class="yellow-mouth" id="yellow-mouth" style="left:40px;top:88px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RIGHT SIDE - Login Form ===== -->
+    <div class="card-right" id="cardRight">
+      <div class="logo-section">
+        <h1 class="department-name">软件工程系</h1>
+        <p class="system-subtitle">2025级 · 分方向志愿填报</p>
+      </div>
+
+      <div class="role-tabs">
+        <button class="role-tab active" data-role="student" id="tabStudent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>学生端</span>
+        </button>
+        <button class="role-tab" data-role="admin" id="tabAdmin">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>管理端</span>
+        </button>
+      </div>
+
+      <form class="login-form" id="loginForm" novalidate>
+        <div class="form-fields" id="studentFields">
+          <div class="input-group">
+            <div class="input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <input type="text" id="studentId" placeholder="请输入学号" autocomplete="username" maxlength="10" inputmode="numeric">
+            <div class="input-underline"></div>
+          </div>
+          <div class="input-group">
+            <div class="input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <input type="password" id="studentPassword" placeholder="请输入密码（默认学号）" autocomplete="current-password">
+            <button type="button" class="password-toggle" id="toggleStudentPwd" tabindex="-1" aria-label="切换密码可见性">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eyeIconStudent"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <div class="input-underline"></div>
+          </div>
+        </div>
+
+        <div class="form-fields" id="adminFields" style="display:none">
+          <div class="input-group">
+            <div class="input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <input type="text" id="adminUsername" placeholder="管理员账号" autocomplete="username">
+            <div class="input-underline"></div>
+          </div>
+          <div class="input-group">
+            <div class="input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <input type="password" id="adminPassword" placeholder="管理员密码" autocomplete="current-password">
+            <button type="button" class="password-toggle" id="toggleAdminPwd" tabindex="-1" aria-label="切换密码可见性">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eyeIconAdmin"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <div class="input-underline"></div>
+          </div>
+        </div>
+
+        <div class="login-options">
+          <label class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <span>记住我</span>
+          </label>
+          <a href="public-data.html" class="live-data-btn">实时数据</a>
+        </div>
+
+        <div class="error-message" id="errorMsg"></div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          <span class="btn-text gradient-text">登 录</span>
+          <div class="btn-shimmer"></div>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>默认密码为学号，首次登录需修改密码</p>
+      </div>
+    </div>
+
+    <div class="ripple-container" id="rippleContainer"></div>
+  </div>
+
+</div>
+
+
+<!-- First Login Password Change Modal -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal-card">
+    <div class="modal-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+    </div>
+    <h2>首次登录 - 修改密码</h2>
+    <p class="modal-subtitle">为了账号安全，请设置新密码</p>
+    <form id="passwordChangeForm" novalidate>
+      <div class="input-group">
+        <input type="password" id="newPassword" placeholder="新密码（至少6位）" autocomplete="new-password">
+        <div class="input-underline"></div>
+      </div>
+      <div class="input-group">
+        <input type="password" id="confirmPassword" placeholder="确认新密码" autocomplete="new-password">
+        <div class="input-underline"></div>
+      </div>
+      <div class="modal-error" id="modalError"></div>
+      <button type="submit" class="login-btn">
+        <span class="btn-text gradient-text">确认修改</span>
+        <div class="btn-shimmer"></div>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script src="js/login.js"></script>
+</body>
+</html>

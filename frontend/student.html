@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>大二分班系统 - 学生端</title>
+<script src="assets/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #1a73e8; --primary-light: #e8f0fe; --bg: #f5f7fa; --white: #fff;
+  --text: #333; --text-light: #666; --border: #e0e0e0; --success: #34a853;
+  --danger: #ea4335; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.navbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.navbar .logo { display: flex; align-items: center; gap: 10px; }
+.navbar .logo img { height: 36px; }
+.navbar .logo span { font-size: 18px; font-weight: 600; color: var(--primary); }
+.navbar .user-info { font-size: 14px; color: var(--text-light); }
+.container { max-width: 780px; margin: 0 auto; padding: 20px 16px calc(110px + env(safe-area-inset-bottom, 0px)); }
+.page { display: none; }
+.page.active { display: block; }
+
+/* Card */
+.card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px; }
+.card-title { text-align: center; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all .2s; text-decoration: none; font-family: inherit; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #1557b0; }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: #f5f5f5; }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; display: none; }
+.alert-error { background: #fce8e6; color: var(--danger); display: block; }
+.alert-success { background: #e6f4ea; color: var(--success); display: block; }
+.alert-info { background: var(--primary-light); color: var(--primary); display: block; }
+
+/* Personal Info */
+.personal-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; align-items: start; }
+.info-item { display: flex; align-items: center; gap: 8px; font-size: 15px; min-height: 28px; }
+.info-item .info-label { color: var(--text-light); font-size: 13px; min-width: 48px; }
+.info-item .info-value { font-weight: 500; }
+.info-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.info-icon-img { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+.info-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 14px; font-size: 12px; font-weight: 500; }
+.badge-male { background: #e3f2fd; color: #1976d2; }
+.badge-female { background: #fce4ec; color: #c62828; }
+.badge-bigdata { background: #e8f0fe; color: #1a73e8; }
+.badge-cloud { background: #f3e5f5; color: #7b1fa2; }
+
+/* Drag zone */
+.drop-zone { min-height: 80px; border: 2px dashed var(--border); border-radius: var(--radius); padding: 10px; transition: all .3s; background: #fafbfc; }
+.drop-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+.drag-item { display: flex; align-items: center; gap: 12px; padding: 13px 14px; margin-bottom: 8px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; cursor: grab; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; user-select: none; -webkit-user-select: none; position: relative; touch-action: none;
+}
+.drag-item:active { cursor: grabbing; }
+.drag-item:last-child { margin-bottom: 0; }
+.drag-item.dragging { opacity: .4; transform: scale(0.97); }
+.drag-item.over { border-color: var(--primary); border-style: dashed; box-shadow: 0 0 0 3px var(--primary-light); }
+.drag-item.moving { z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,0.15); opacity: 0.95; }
+.drag-item .rank { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.dir-img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+.drag-item .dir-name { flex: 1; font-size: 15px; font-weight: 500; }
+.drag-item .remove-btn { color: #ea4335; cursor: pointer; font-size: 16px; background: none; border: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.drag-item .remove-btn:hover { background: #fce8e6; }
+.drag-item.dragging { opacity: .4; transform: scale(0.97); }
+.drag-item.over { border-color: var(--primary); border-style: solid; box-shadow: 0 0 0 3px var(--primary-light); }
+.unselected-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.unselected-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .2s; }
+.unselected-item:hover { border-color: var(--primary); background: var(--primary-light); }
+.unselected-item .dir-name { font-size: 14px; }
+.unselected-item .add-btn { background: var(--primary-light); color: var(--primary); border: none; width: 24px; height: 24px; border-radius: 50%; font-size: 16px; cursor: pointer; margin-left: 4px; }
+
+/* Button Row */
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.btn-row .btn { width: 100%; }
+
+/* Badges */
+.submitted-badge { display: inline-flex; align-items: center; gap: 6px; background: #e6f4ea; color: var(--success); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+.not-submitted-badge { display: inline-flex; align-items: center; gap: 6px; background: #fce8e6; color: var(--danger); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+
+/* Time info */
+.time-info { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--primary-light); border-radius: 8px; font-size: 13px; color: var(--primary); margin-bottom: 16px; }
+.time-info.closed { background: #fce8e6; color: var(--danger); }
+
+/* History */
+.history-card { background: #f8f9fb; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.history-card:last-child { margin-bottom: 0; }
+.history-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--text-light); }
+.history-card-header .history-time { font-weight: 500; }
+.history-card-header .history-status { padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; background: #e6f4ea; color: var(--success); }
+.history-card-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
+.history-card-row .hc-rank { width: 22px; height: 22px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.hc-img { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
+.history-card-row .hc-name { font-weight: 500; }
+.history-empty { text-align: center; padding: 24px; color: var(--text-light); font-size: 14px; }
+
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal-card { background: var(--white); border-radius: var(--radius); padding: 28px; width: 420px; max-width: 92vw; box-shadow: 0 16px 48px rgba(0,0,0,0.15); }
+.modal-title { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 18px; }
+.modal-order { margin-bottom: 20px; }
+.modal-order .order-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8f9fb; border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
+.modal-order .order-rank { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.modal-order .order-icon { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+.modal-order .order-name { font-weight: 500; }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.form-group input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; }
+.form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+/* Change Password Section */
+.pwd-change-section { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+.pwd-change-section span { font-size: 14px; color: var(--text-light); }
+
+/* ========== RESPONSIVE ========== */
+/* Tablet */
+@media (max-width: 900px) {
+  .container { max-width: 100%; padding: 16px 16px calc(100px + env(safe-area-inset-bottom, 0px)); }
+  .navbar { padding: 0 16px; }
+  .card { padding: 20px; }
+  .personal-info { gap: 10px; }
+}
+
+/* Mobile landscape / small tablet */
+@media (max-width: 768px) {
+  .container { padding: 12px 12px calc(90px + env(safe-area-inset-bottom, 0px)); }
+  .navbar { padding: 0 12px; height: 52px; }
+  .navbar .logo img { height: 28px; }
+  .navbar .logo span { font-size: 15px; }
+  .card { padding: 16px; border-radius: 8px; }
+  .card-title { font-size: 18px; margin-bottom: 14px; }
+  .personal-info { grid-template-columns: 1fr; gap: 8px; }
+  .info-item { font-size: 14px; }
+  .drop-zone { min-height: 60px; padding: 8px; }
+  .drag-item { padding: 10px 12px; }
+  .dir-img { width: 32px; height: 32px; }
+  .drag-item .dir-name { font-size: 14px; }
+  .drag-item .rank { width: 24px; height: 24px; font-size: 11px; }
+  .unselected-list { gap: 6px; }
+  .unselected-item { padding: 8px 12px; }
+  .btn-row { gap: 8px; }
+  .btn { padding: 11px 16px; font-size: 14px; min-height: 44px; }
+  .modal-card { width: 90vw; padding: 24px 18px; }
+  .history-card { padding: 12px; }
+  .history-card-row { font-size: 13px; }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .container { padding: 8px 8px calc(85px + env(safe-area-inset-bottom, 0px)); }
+  .navbar { padding: 0 8px; height: 48px; }
+  .navbar .logo img { height: 24px; }
+  .navbar .logo span { font-size: 13px; }
+  .navbar .user-info button, .navbar button { font-size: 12px !important; }
+  .card { padding: 14px; border-radius: 6px; margin-bottom: 12px; }
+  .card-title { font-size: 17px; margin-bottom: 12px; }
+  .personal-info { gap: 6px; }
+  .info-item { font-size: 13px; }
+  .info-item .info-label { min-width: 40px; font-size: 12px; }
+  .info-icon { width: 24px; height: 24px; font-size: 14px; }
+  .info-badge { font-size: 11px; padding: 2px 8px; }
+  .time-info { font-size: 12px; padding: 8px 12px; }
+  .drop-zone { min-height: 50px; padding: 6px; border-radius: 8px; }
+  .drag-item { padding: 8px 10px; gap: 8px; margin-bottom: 6px; border-radius: 8px; }
+  .dir-img { width: 28px; height: 28px; }
+  .drag-item .dir-name { font-size: 13px; }
+  .drag-item .rank { width: 22px; height: 22px; font-size: 10px; }
+  .unselected-item { padding: 7px 10px; font-size: 13px; }
+  .unselected-item .dir-img, .unselected-item img { width: 26px; height: 26px; }
+  .btn { padding: 10px 14px; font-size: 13px; min-height: 44px; border-radius: 6px; }
+  .btn-row { gap: 6px; margin-top: 12px; }
+  .modal-card { width: 92vw; padding: 20px 14px; border-radius: 8px; }
+  .modal-title { font-size: 16px; margin-bottom: 14px; }
+  .modal-order .order-item { padding: 8px 10px; font-size: 13px; }
+  .history-card { padding: 10px; }
+  .history-card-header { font-size: 12px; }
+  .history-card-row { font-size: 12px; padding: 4px 0; }
+  .history-card-row .hc-rank { width: 18px; height: 18px; font-size: 10px; }
+  .hc-img { width: 22px; height: 22px; }
+  #choiceCountLabel { font-size: 12px; }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .navbar .logo span { font-size: 12px; }
+  .card { padding: 12px; }
+  .card-title { font-size: 16px; }
+  .drag-item .dir-name { font-size: 12px; }
+  .btn { padding: 9px 10px; font-size: 12px; min-height: 40px; }
+}
+
+/* =================== 底部状态栏 =================== */
+.bottom-bar {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);
+  max-width: 780px;
+  height: 66px;
+  background: var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 6px 12px -4px rgba(0,0,0,0.08),
+    0 4px 24px rgba(0,0,0,0.10),
+    0 1px 3px rgba(0,0,0,0.04);
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: box-shadow 0.4s;
+}
+.bb-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bb-item:active { transform: scale(0.92); }
+.bb-icon {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  fill: #222327;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+.bb-text {
+  transform: translateY(20px);
+  font-size: 0.72em;
+  font-weight: 600;
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  color: #222327;
+}
+.bb-item.active .bb-icon {
+  transform: translateY(-30px);
+  fill: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.bb-item.active .bb-text {
+  opacity: 1;
+  transform: translateY(4px);
+  color: var(--primary);
+}
+.bb-indicator {
+  position: absolute;
+  width: 66px;
+  height: 66px;
+  background: var(--primary);
+  left: calc(50% - 50px - 33px);
+  top: -33px;
+  border-radius: 50%;
+  border: 5px solid var(--bg);
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 -2px 8px rgba(0,0,0,0.12),
+    0 4px 8px rgba(0,0,0,0.08);
+}
+/* 2个tab的指示器位置 */
+.bb-item:nth-child(1).active ~ .bb-indicator { transform: translateX(0); }
+.bb-item:nth-child(2).active ~ .bb-indicator { transform: translateX(100px); }
+/* 移动端适配 */
+@media (max-width: 480px) {
+  .bottom-bar { width: calc(100vw - 16px); border-radius: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* 数据页面样式 */
+.data-overview { display: flex; gap: 12px; margin-bottom: 20px; }
+.overview-card { flex: 1; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 12px; text-align: center; }
+.ov-num { font-size: 28px; font-weight: 700; color: var(--primary); line-height: 1.2; }
+.ov-label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+.ov-submitted .ov-num { color: var(--success); }
+.ov-unfilled .ov-num { color: var(--danger); }
+.data-charts { display: flex; flex-direction: column; gap: 20px; }
+.data-charts .chart-box { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 16px; }
+.data-charts .chart-box h3 { text-align: center; font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+.data-charts .chart-box canvas { width: 100% !important; height: 420px !important; }
+@media (max-width: 480px) {
+  .data-overview { gap: 8px; }
+  .overview-card { padding: 12px 8px; }
+  .ov-num { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="navUserInfo" style="font-size:14px;color:var(--text-light);"></span>
+    <div id="settingsDropdown" style="position:relative;">
+      <button onclick="toggleSettings()" style="background:none;border:none;cursor:pointer;padding:2px;" title="设置"><img src="assets/icons/ic_settings.png" alt="设置" style="width:30px;height:30px;object-fit:contain;"></button>
+      <div id="settingsMenu" style="display:none;position:absolute;top:32px;right:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:200;min-width:120px;overflow:hidden;">
+        <button onclick="showChangePwdMain();toggleSettings();" style="display:block;width:100%;padding:10px 16px;border:none;background:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;">修改密码</button>
+        <button onclick="handleLogout()" style="display:block;width:100%;padding:10px 16px;border:none;background:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;color:#ea4335;">退出登录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Login Page -->
+<div class="page active" id="pageLogin">
+  <div class="card" style="max-width:400px;margin:60px auto;">
+    <h2 style="text-align:center;margin-bottom:8px;">学生登录</h2>
+    <p style="text-align:center;font-size:14px;color:var(--text-light);margin-bottom:24px;">请输入学号和密码</p>
+    <div id="loginAlert" class="alert"></div>
+    <div class="form-group"><label>学号</label><input type="text" id="loginStudentId" placeholder="请输入学号" autocomplete="off"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码" autocomplete="off"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="handleLogin()">登 录</button>
+    <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">首次登录默认密码为学号</p>
+  </div>
+</div>
+
+<!-- Change Password Page -->
+<div class="page" id="pageChangePwd">
+  <div class="card" style="max-width:400px;margin:60px auto;">
+    <h2 style="text-align:center;margin-bottom:8px;">首次登录·修改密码</h2>
+    <p style="text-align:center;font-size:14px;color:var(--text-light);margin-bottom:24px;">首次登录请设置新密码（至少6位）</p>
+    <div id="pwdAlert" class="alert"></div>
+    <div class="form-group"><label>新密码</label><input type="password" id="newPassword" placeholder="请输入新密码"></div>
+    <div class="form-group"><label>确认密码</label><input type="password" id="confirmPassword" placeholder="请再次输入新密码"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="handleChangePwd()">确认修改</button>
+  </div>
+</div>
+
+<!-- Main Page -->
+<div class="page" id="pageMain">
+
+  <!-- Personal Info -->
+  <div class="card">
+    <div class="card-title">个人信息</div>
+    <div class="personal-info" id="personalInfo"></div>
+  </div>
+
+  <!-- Preferences -->
+  <div class="card">
+    <div class="card-title">志愿填报</div>
+    <div id="timeInfo" class="time-info"></div>
+
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:10px;" id="choiceCountLabel"></p>
+    <div id="selectedZone" class="drop-zone"></div>
+
+    <p style="font-size:14px;font-weight:500;color:var(--text);margin:16px 0 8px;">可选方向</p>
+    <div id="availableZone"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="submitBtn" onclick="showConfirmModal()">提交志愿</button>
+      <button class="btn btn-outline" id="resetBtn" onclick="resetChoices()">志愿重置</button>
+    </div>
+  </div>
+
+  <!-- Submission History -->
+  <div class="card" id="historyCard">
+    <div class="card-title">提交记录</div>
+    <div id="historyContent"></div>
+  </div>
+</div>
+
+<!-- Data Tab -->
+<div class="page" id="pageData">
+  <!-- 概览卡片 -->
+  <div class="data-overview">
+    <div class="overview-card ov-submitted">
+      <div class="ov-num" id="ovSubmitted">0</div>
+      <div class="ov-label">已填报</div>
+    </div>
+    <div class="overview-card ov-unfilled">
+      <div class="ov-num" id="ovUnfilled">0</div>
+      <div class="ov-label">未填报</div>
+    </div>
+  </div>
+  <!-- 专业组 - 动态切换 -->
+  <div class="data-charts" style="margin-bottom:20px;">
+    <h2 id="bdGroupTitle" style="text-align:center;font-size:18px;color:#667eea;margin-bottom:12px;font-weight:700;">大数据专业组</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div class="chart-box" style="flex:1;min-width:300px;">
+        <h3>第一志愿人数</h3>
+        <canvas id="sBdBarChart"></canvas>
+      </div>
+      <div class="chart-box" style="flex:1;min-width:300px;">
+        <h3>各方向第一志愿占比</h3>
+        <canvas id="sBdPieChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-card">
+    <div class="modal-title">确认提交志愿</div>
+    <div class="modal-order" id="modalOrder"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmSubmit()">确认提交</button>
+      <button class="btn btn-outline" onclick="closeModal()">我再想想</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal (for main page) -->
+<div class="modal-overlay" id="pwdModal">
+  <div class="modal-card">
+    <div class="modal-title">修改密码</div>
+    <div id="pwdModalAlert" class="alert"></div>
+    <div class="form-group"><label>新密码</label><input type="password" id="pwdModalNewPwd" placeholder="请输入新密码（至少6位）"></div>
+    <div class="form-group"><label>确认密码</label><input type="password" id="pwdModalConfirmPwd" placeholder="请再次输入新密码"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="pwdModalSubmit" onclick="handleChangePwdMain()">确认修改</button>
+      <button class="btn btn-outline" onclick="closePwdModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-bar" id="bottomBar">
+  <div class="bb-item active" data-page="pageMain" onclick="switchTab('pageMain', this)">
+    <svg class="bb-icon" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9v8a1 1 0 01-1 1H5a1 1 0 01-1-1v-8z"/><path d="M9 21V12h6v9"/></svg>
+    <span class="bb-text">首页</span>
+  </div>
+  <div class="bb-item" data-page="pageData" onclick="switchTab('pageData', this)">
+    <svg class="bb-icon" viewBox="0 0 24 24"><rect x="3" y="10" width="4" height="10" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="2" width="4" height="18" rx="1"/></svg>
+    <span class="bb-text">数据</span>
+  </div>
+  <div class="bb-indicator"></div>
+</div>
+
+<script>
+const API = '';
+
+// ============ BOTTOM BAR TAB SWITCHING ============
+let sBdBarChart = null, sBdPieChart = null;
+
+async function loadStudentStats() {
+  try {
+    const res = await fetch(API + '/api/stats', {
+      headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    document.getElementById('ovSubmitted').textContent = d.total_submitted;
+    document.getElementById('ovUnfilled').textContent = d.total_unfilled;
+  } catch(e) {
+    console.error('Stats load failed:', e);
+  }
+}
+
+function switchTab(pageId, el) {
+  if (!el || !pageId) return;
+  // Update active classes
+  document.querySelectorAll('.bb-item').forEach(item => item.classList.remove('active'));
+  el.classList.add('active');
+  // Switch page - explicitly set display
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+  const target = document.getElementById(pageId);
+  if (!target) return;
+  target.classList.add('active');
+  target.style.display = 'block';
+  // Show/hide bottom bar (hide on login/pwd pages, show on main/data)
+  const bb = document.getElementById('bottomBar');
+  if (pageId === 'pageLogin' || pageId === 'pageChangePwd') {
+    if (bb) bb.style.display = 'none';
+  } else {
+    if (bb) bb.style.display = 'flex';
+  }
+  // Load charts when switching to data tab
+  if (pageId === 'pageData') {
+    requestAnimationFrame(() => {
+      setTimeout(() => loadStudentCharts(), 200);
+    });
+  }
+}
+
+async function loadStudentCharts() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch(API + '/api/stats', {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    // Update overview cards
+    document.getElementById('ovSubmitted').textContent = d.total_submitted;
+    document.getElementById('ovUnfilled').textContent = d.total_unfilled;
+
+    function makeBar(canvasId, labels, values, colors){
+      var ctx = document.getElementById(canvasId);
+      if(!ctx) return null;
+      return new Chart(ctx, {
+        type:'bar',
+        data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderRadius:8}]},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+          layout:{padding:{top:28}},plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,ticks:{stepSize:1,callback:function(v){return v+'人'}},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}
+        },
+        plugins:[{
+          id:'barLabels',
+          afterDraw:function(chart){
+            var ctx=chart.ctx, meta=chart.getDatasetMeta(0);
+            ctx.save();ctx.font='bold 14px "Microsoft YaHei",sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';ctx.textBaseline='bottom';
+            meta.data.forEach(function(bar,i){ var v=chart.data.datasets[0].data[i]; if(v===0)return; ctx.fillText(v+'人',bar.x,bar.y-6); });
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    function makePie(canvasId, labels, values, colors){
+      var ctx = document.getElementById(canvasId);
+      if(!ctx) return null;
+      // Create external tooltip element inside chart container
+      var ttId = canvasId + '_tooltip';
+      var existing = document.getElementById(ttId);
+      if(existing) existing.remove();
+      var parent = ctx.parentNode;
+      parent.style.position = 'relative';
+      var ttDiv = document.createElement('div');
+      ttDiv.id = ttId;
+      ttDiv.style.cssText = 'position:absolute;pointer-events:none;background:rgba(30,30,30,.92);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);transform:translate(-50%,-100%);';
+      parent.appendChild(ttDiv);
+
+      return new Chart(ctx, {
+        type:'pie',
+        data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+          onHover:function(e,els){
+            if(els.length>0){
+              var item=els[0];
+              var idx=item.index;
+              var t=values.reduce(function(a,b){return a+b},0);
+              var p=t>0?(values[idx]/t*100).toFixed(1):'0.0';
+              ttDiv.innerHTML = '<strong>'+labels[idx]+'</strong><br>'+values[idx]+'人 ('+p+'%)';
+              ttDiv.style.display='block';
+              var prect = parent.getBoundingClientRect();
+              ttDiv.style.left = (e.native.clientX - prect.left) + 'px';
+              ttDiv.style.top = (e.native.clientY - prect.top - 12) + 'px';
+            } else {
+              ttDiv.style.display='none';
+            }
+          },
+          plugins:{
+            legend:{position:'bottom',labels:{padding:10,font:{size:12},usePointStyle:true,pointStyleWidth:8}},
+            tooltip:{enabled:false}
+          }
+        },
+        plugins:[{
+          id:'pieLabels',
+          afterDraw:function(chart){
+            var ctx=chart.ctx, meta=chart.getDatasetMeta(0);
+            var total=chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);
+            if(total===0)return;
+            meta.data.forEach(function(arc,i){
+              var name=chart.data.labels[i], val=chart.data.datasets[0].data[i];
+              if(val===0)return;
+              var pct=(val/total*100).toFixed(1);
+              var angle=(arc.startAngle+arc.endAngle)/2, r=arc.outerRadius*0.65;
+              var x=arc.x+Math.cos(angle)*r, y=arc.y+Math.sin(angle)*r;
+              ctx.save();ctx.fillStyle='#fff';ctx.font='bold 12px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+              ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=3;
+              ctx.fillText(pct+'%',x,y-6);
+              ctx.fillText(name,x,y+10);
+              ctx.restore();
+            });
+          }
+        }]
+      });
+    }
+
+    // Show only this student's major group
+    var isBD = d.my_major === '大数据';
+    var L = d.direction_stats.map(function(s){return s.name});
+    var V = d.direction_stats.map(function(s){return s.count});
+    var barColors = isBD ? ['#2ED573','#1E90FF','#FF4757'] : ['#00D2D3','#A855F7'];
+    var pieColors = isBD ? ['#2ED573','#1E90FF','#FF4757'] : ['#00D2D3','#A855F7'];
+    var title = isBD ? '大数据专业组' : '云计算专业组';
+    var titleColor = isBD ? '#667eea' : '#00B894';
+
+    if(sBdBarChart)sBdBarChart.destroy();
+    // Clean old tooltips
+    var oldTT = document.querySelectorAll('[id$="_tooltip"]');
+    oldTT.forEach(function(el){ el.remove(); });
+    sBdBarChart=makeBar('sBdBarChart',L,V,barColors);
+    if(sBdPieChart)sBdPieChart.destroy();
+    sBdPieChart=makePie('sBdPieChart',L,V,pieColors);
+
+    var groupTitle = document.getElementById('bdGroupTitle');
+    if(groupTitle) { groupTitle.textContent = title; groupTitle.style.color = titleColor; }
+  } catch(e) { console.error('图表加载失败:', e); }
+}
+
+
+const DIRECTIONS = [
+  { id: 'vr', name: '大数据VR方向', icon: 'assets/icons/vr_game.png', color: '#4CAF50' },
+  { id: 'bigdata', name: '大数据分析运维', icon: 'assets/icons/bigdata.png', color: '#2196F3' },
+  { id: 'softdev', name: '大数据应用开发', icon: 'assets/icons/software.png', color: '#FF9800' },
+  { id: 'newmedia', name: '新媒体技术方向', icon: 'assets/icons/newmedia.png', color: '#E91E63' },
+  { id: 'network', name: '云计算运维与安全', icon: 'assets/icons/security.png', color: '#9C27B0' }
+];
+const BIG_DATA_DIRS = ['大数据VR方向', '大数据分析运维', '大数据应用开发'];
+const CLOUD_DIRS = ['云计算运维与安全', '新媒体技术方向'];
+const DIR_MAP = Object.fromEntries(DIRECTIONS.map(d => [d.name, d]));
+
+let currentStudent = null;
+let currentPrefs = null;
+let currentSettings = {};
+let selectedChoices = [];
+let availableChoices = [];
+
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+// Override showPage to also handle bottom bar visibility
+(function() {
+  const _orig = showPage;
+  showPage = function(id) {
+    _orig(id);
+    const bb = document.getElementById('bottomBar');
+    if (bb) {
+      if (id === 'pageLogin' || id === 'pageChangePwd') {
+        bb.style.display = 'none';
+      } else {
+        bb.style.display = 'flex';
+        document.querySelectorAll('.bb-item').forEach(item => {
+          item.classList.toggle('active', item.dataset.page === id);
+        });
+      }
+    }
+  };
+})();
+
+// ============ LOGIN ============
+async function handleLogin() {
+  const sid = document.getElementById('loginStudentId').value.trim();
+  const pwd = document.getElementById('loginPassword').value.trim();
+  const alert = document.getElementById('loginAlert');
+  if (!sid || !pwd) { alert.textContent = '请输入学号和密码'; alert.className = 'alert alert-error'; return; }
+  try {
+    const r = await fetch(API + '/api/student/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({studentId: sid, password: pwd}) });
+    const data = await r.json();
+    if (!r.ok) { alert.textContent = data.error; alert.className = 'alert alert-error'; return; }
+    alert.className = 'alert';
+    currentStudent = data.student;
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('role', 'student');
+    if (data.firstLogin) { showPage('pageChangePwd'); } else { loadMain(); }
+  } catch(e) { alert.textContent = '网络错误，请重试'; alert.className = 'alert alert-error'; }
+}
+
+// ============ CHANGE PASSWORD (first login) ============
+async function handleChangePwd() {
+  const np = document.getElementById('newPassword').value;
+  const cp = document.getElementById('confirmPassword').value;
+  const alert = document.getElementById('pwdAlert');
+  if (!np || np.length < 6) { alert.textContent = '密码至少6位'; alert.className = 'alert alert-error'; return; }
+  if (np !== cp) { alert.textContent = '两次密码不一致'; alert.className = 'alert alert-error'; return; }
+  try {
+    const r = await fetch(API + '/api/student/change-password', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ' + localStorage.getItem('token')}, body: JSON.stringify({newPassword: np}) });
+    const data = await r.json();
+    if (!r.ok) { alert.textContent = data.error; alert.className = 'alert alert-error'; return; }
+    alert.className = 'alert alert-success'; alert.textContent = '密码修改成功！';
+    setTimeout(() => loadMain(), 1000);
+  } catch(e) { alert.textContent = '网络错误'; alert.className = 'alert alert-error'; }
+}
+
+// ============ CHANGE PASSWORD (main page modal) ============
+function showChangePwdMain() {
+  document.getElementById('pwdModalAlert').className = 'alert';
+  document.getElementById('pwdModalAlert').textContent = '';
+  document.getElementById('pwdModalNewPwd').value = '';
+  document.getElementById('pwdModalConfirmPwd').value = '';
+  document.getElementById('pwdModal').classList.add('show');
+}
+function closePwdModal() { document.getElementById('pwdModal').classList.remove('show'); }
+async function handleChangePwdMain() {
+  const np = document.getElementById('pwdModalNewPwd').value;
+  const cp = document.getElementById('pwdModalConfirmPwd').value;
+  const alert = document.getElementById('pwdModalAlert');
+  if (!np || np.length < 6) { alert.textContent = '密码至少6位'; alert.className = 'alert alert-error'; return; }
+  if (np !== cp) { alert.textContent = '两次密码不一致'; alert.className = 'alert alert-error'; return; }
+  try {
+    const r = await fetch(API + '/api/student/change-password', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ' + localStorage.getItem('token')}, body: JSON.stringify({newPassword: np}) });
+    const data = await r.json();
+    if (!r.ok) { alert.textContent = data.error; alert.className = 'alert alert-error'; return; }
+    alert.textContent = '密码修改成功！'; alert.className = 'alert alert-success';
+    setTimeout(() => closePwdModal(), 1200);
+    toast('密码修改成功');
+  } catch(e) { alert.textContent = '网络错误'; alert.className = 'alert alert-error'; }
+}
+
+// ============ MAIN PAGE ============
+async function loadMain() {
+  const token = localStorage.getItem('token');
+  if (!token) { showPage('pageLogin'); return; }
+  try {
+    const r = await fetch(API + '/api/student/info', { headers: {'Authorization':'Bearer ' + token} });
+    if (!r.ok) { localStorage.removeItem('token'); showPage('pageLogin'); return; }
+    const data = await r.json();
+    currentStudent = data.student;
+    currentPrefs = data.preferences;
+    currentSettings = data.settings;
+    showPage('pageMain');
+    renderPersonalInfo();
+    renderTimeInfo();
+    renderChoices();
+    renderHistory();
+  } catch(e) { toast('加载失败，请刷新重试'); }
+}
+
+// ============ PERSONAL INFO ============
+function renderPersonalInfo() {
+  const s = currentStudent;
+  const isMale = s.gender === '男';
+
+  const genderIcon = isMale ? 'assets/icons/gender_male.png' : 'assets/icons/gender_female.png';
+  const classIcon = s.major === '大数据' ? 'assets/icons/ic_bigdata_major.png' : 'assets/icons/ic_cloud_major.png';
+  const majorBadge = s.major === '大数据' ? 'badge-bigdata' : 'badge-cloud';
+  const genderBadge = isMale ? 'badge-male' : 'badge-female';
+
+  // Navbar: gender icon + name
+  document.getElementById('navUserInfo').innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px;color:${isMale?'#1976d2':'#e91e63'};"><img src="${genderIcon}" alt="" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;"> <span>${s.name}</span></span>`;
+
+  document.getElementById('personalInfo').innerHTML = `
+    <div class="info-item"><span class="info-label">姓名</span><span class="info-value">${s.name}</span></div>
+    <div class="info-item"><span class="info-label">学号</span><span class="info-value">${s.studentId}</span></div>
+    <div class="info-item">
+      <span class="info-label">性别</span>
+      <img src="${genderIcon}" alt="" class="info-icon-img">
+      <span class="info-badge ${genderBadge}">${s.gender || '未知'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">原班级</span>
+      <img src="${classIcon}" alt="" class="info-icon-img">
+      <span class="info-badge ${majorBadge}">${s.original_class || s.class_name}</span>
+    </div>`;
+}
+
+// ============ TIME INFO ============
+function renderTimeInfo() {
+  const el = document.getElementById('timeInfo');
+  const s = currentSettings;
+  if (s.registration_open !== '1') { el.innerHTML = '⏰ 志愿填报暂未开放，请耐心等待'; el.className = 'time-info closed'; return; }
+  const now = new Date();
+  if (s.start_time && new Date(s.start_time) > now) { el.innerHTML = '⏰ 填报开始时间：' + s.start_time + '（尚未开始）'; el.className = 'time-info'; return; }
+  if (s.end_time && new Date(s.end_time) < now) { el.innerHTML = '⏰ 填报已截止（截止时间：' + s.end_time + '）'; el.className = 'time-info closed'; return; }
+  let txt = '✅ 志愿填报进行中';
+  if (s.start_time) txt += ' | 开始：' + s.start_time;
+  if (s.end_time) txt += ' | 截止：' + s.end_time;
+  el.innerHTML = txt; el.className = 'time-info';
+}
+
+// ============ CHOICES ============
+function renderChoices() {
+  const major = currentStudent.major;
+  const allDirs = major === '大数据' ? BIG_DATA_DIRS : CLOUD_DIRS;
+  const maxChoices = allDirs.length;
+
+  document.getElementById('choiceCountLabel').textContent = major === '大数据'
+    ? '请将3个方向按优先级从高到低拖拽排序'
+    : '请将2个方向按优先级从高到低拖拽排序';
+
+  if (currentPrefs) {
+    selectedChoices = [];
+    for (let i = 1; i <= maxChoices; i++) {
+      if (currentPrefs['choice' + i]) selectedChoices.push(currentPrefs['choice' + i]);
+    }
+  } else { selectedChoices = []; }
+
+  availableChoices = allDirs.filter(d => !selectedChoices.includes(d));
+  renderSelected();
+  renderAvailable();
+  updateSubmitStatus();
+}
+
+function renderSelected() {
+  const zone = document.getElementById('selectedZone');
+  if (selectedChoices.length === 0) {
+    zone.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:14px;">从下方点击 + 添加方向，然后拖拽排序</div>';
+    return;
+  }
+  zone.innerHTML = selectedChoices.map((name, i) => {
+    const dir = DIR_MAP[name] || { icon: 'assets/icons/bigdata.png', color: '#666' };
+    return `<div class="drag-item" draggable="true" data-index="${i}">
+      <div class="rank">${i + 1}</div>
+      <img src="${dir.icon}" alt="${name}" class="dir-img">
+      <div class="dir-name">${name}</div>
+      <div class="drag-handle" style="color:#999;font-size:16px;padding:0 4px;touch-action:none;cursor:grab;">⠿</div>
+      <button class="remove-btn" onclick="event.stopPropagation();removeChoice(${i})">✕</button>
+    </div>`;
+  }).join('');
+
+  const items = zone.querySelectorAll('.drag-item');
+
+  // === Desktop: HTML5 Drag & Drop ===
+  let html5DragIdx = null;
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      html5DragIdx = parseInt(item.dataset.index);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+    });
+    item.addEventListener('dragend', () => { items.forEach(it => it.classList.remove('dragging','over')); });
+    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; item.classList.add('over'); });
+    item.addEventListener('dragleave', () => { item.classList.remove('over'); });
+    item.addEventListener('drop', e => {
+      e.preventDefault(); item.classList.remove('over');
+      const tgt = parseInt(item.dataset.index);
+      if (html5DragIdx !== null && html5DragIdx !== tgt) {
+        const [m] = selectedChoices.splice(html5DragIdx, 1);
+        selectedChoices.splice(tgt, 0, m);
+        renderSelected();
+      }
+    });
+  });
+
+  // === Touch/Mobile: Native Touch Events Drag ===
+  let dragState = null;
+
+  function getDropTarget(clientY) {
+    if (!dragState) return null;
+    let target = null;
+    items.forEach(it => {
+      if (it === dragState.item) return;
+      const r = it.getBoundingClientRect();
+      if (clientY > r.top && clientY < r.bottom) target = it;
+    });
+    return target;
+  }
+
+  // Attach touchstart to each drag item
+  items.forEach(item => {
+    item.addEventListener('touchstart', function(e) {
+      if (e.target.closest('.remove-btn')) return;
+      const touch = e.touches[0];
+      e.preventDefault();
+      const idx = parseInt(this.dataset.index);
+      const ghost = this.cloneNode(true);
+      ghost.style.position = 'fixed';
+      ghost.style.zIndex = '1000';
+      ghost.style.pointerEvents = 'none';
+      ghost.style.opacity = '0.85';
+      ghost.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+      ghost.style.width = this.offsetWidth + 'px';
+      const rect = this.getBoundingClientRect();
+      ghost.style.left = rect.left + 'px';
+      ghost.style.top = rect.top + 'px';
+      document.body.appendChild(ghost);
+      this.classList.add('moving');
+      dragState = { item: this, startY: touch.clientY, origIdx: idx, ghost: ghost, ghostStartTop: rect.top };
+    }, { passive: false });
+  });
+
+  // Global touchmove
+  document.addEventListener('touchmove', function(e) {
+    if (!dragState) return;
+    const touch = e.touches[0];
+    const dy = touch.clientY - dragState.startY;
+    if (Math.abs(dy) < 5) return;
+    dragState.ghost.style.top = (dragState.ghostStartTop + dy) + 'px';
+    items.forEach(it => it.classList.remove('over'));
+    const target = getDropTarget(touch.clientY);
+    if (target) target.classList.add('over');
+  }, { passive: false });
+
+  // Global touchend
+  document.addEventListener('touchend', function(e) {
+    if (!dragState) return;
+    dragState.ghost.remove();
+    dragState.item.classList.remove('moving');
+    items.forEach(it => it.classList.remove('over'));
+    const touch = e.changedTouches[0];
+    const target = getDropTarget(touch.clientY);
+    if (target) {
+      const tgtIdx = parseInt(target.dataset.index);
+      if (dragState.origIdx !== tgtIdx) {
+        const [m] = selectedChoices.splice(dragState.origIdx, 1);
+        selectedChoices.splice(tgtIdx, 0, m);
+        renderSelected();
+      }
+    }
+    dragState = null;
+  }, { passive: false });
+
+  // Also keep pointer events for non-mobile devices
+  items.forEach(item => {
+    item.addEventListener('pointerdown', function(e) {
+      if (e.pointerType === 'touch') return; // let touch handle it
+      if (e.target.closest('.remove-btn')) return;
+      e.preventDefault();
+      const idx = parseInt(this.dataset.index);
+      const ghost = this.cloneNode(true);
+      ghost.style.position = 'fixed';
+      ghost.style.zIndex = '1000';
+      ghost.style.pointerEvents = 'none';
+      ghost.style.opacity = '0.85';
+      ghost.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+      ghost.style.width = this.offsetWidth + 'px';
+      const rect = this.getBoundingClientRect();
+      ghost.style.left = rect.left + 'px';
+      ghost.style.top = rect.top + 'px';
+      document.body.appendChild(ghost);
+      this.classList.add('moving');
+      dragState = { item: this, startY: e.clientY, origIdx: idx, ghost: ghost, ghostStartTop: rect.top };
+      this.setPointerCapture(e.pointerId);
+    });
+
+    item.addEventListener('pointermove', function(e) {
+      if (!dragState || dragState.item !== this) return;
+      const dy = e.clientY - dragState.startY;
+      if (Math.abs(dy) < 3) return;
+      dragState.ghost.style.top = (dragState.ghostStartTop + dy) + 'px';
+      items.forEach(it => it.classList.remove('over'));
+      const target = getDropTarget(e.clientY);
+      if (target) target.classList.add('over');
+    });
+
+    item.addEventListener('pointerup', function(e) {
+      if (!dragState || dragState.item !== this) return;
+      this.releasePointerCapture(e.pointerId);
+      dragState.ghost.remove();
+      this.classList.remove('moving');
+      items.forEach(it => it.classList.remove('over'));
+      const target = getDropTarget(e.clientY);
+      if (target) {
+        const tgtIdx = parseInt(target.dataset.index);
+        if (dragState.origIdx !== tgtIdx) {
+          const [m] = selectedChoices.splice(dragState.origIdx, 1);
+          selectedChoices.splice(tgtIdx, 0, m);
+          renderSelected();
+        }
+      }
+      dragState = null;
+    });
+
+    item.addEventListener('pointercancel', function() {
+      if (!dragState || dragState.item !== this) return;
+      dragState.ghost.remove();
+      this.classList.remove('moving');
+      items.forEach(it => it.classList.remove('over'));
+      dragState = null;
+    });
+  });
+}
+
+function renderAvailable() {
+  const zone = document.getElementById('availableZone');
+  if (availableChoices.length === 0) {
+    zone.innerHTML = '<div style="padding:12px;text-align:center;color:#999;font-size:14px;">所有方向已添加 ✓</div>';
+    return;
+  }
+  zone.innerHTML = availableChoices.map(name => {
+    const dir = DIR_MAP[name] || { icon: '📌', color: '#666' };
+    return `<div class="unselected-item" onclick="addChoice('${name}')">
+      <img src="${dir.icon}" alt="${name}" class="dir-img">
+      <div class="dir-name">${name}</div>
+      <button class="add-btn">+</button>
+    </div>`;
+  }).join('');
+}
+
+function addChoice(name) {
+  const maxChoices = currentStudent.major === '大数据' ? 3 : 2;
+  if (selectedChoices.length >= maxChoices) { toast('已达到最大志愿数量'); return; }
+  selectedChoices.push(name);
+  availableChoices = availableChoices.filter(d => d !== name);
+  renderSelected(); renderAvailable();
+}
+
+function removeChoice(index) {
+  const removed = selectedChoices.splice(index, 1)[0];
+  availableChoices.push(removed);
+  renderSelected(); renderAvailable();
+}
+
+function resetChoices() {
+  const major = currentStudent.major;
+  const allDirs = major === '大数据' ? BIG_DATA_DIRS : CLOUD_DIRS;
+  selectedChoices = [];
+  availableChoices = [...allDirs];
+  renderSelected(); renderAvailable();
+  toast('志愿已重置');
+}
+
+function updateSubmitStatus() {
+  const btn = document.getElementById('submitBtn');
+  if (currentPrefs) { btn.textContent = '更新志愿'; }
+  else { btn.textContent = '提交志愿'; }
+}
+
+// ============ CONFIRM MODAL ============
+function showConfirmModal() {
+  const maxChoices = currentStudent.major === '大数据' ? 3 : 2;
+  if (selectedChoices.length !== maxChoices) { toast('请填报所有' + maxChoices + '个志愿'); return; }
+  document.getElementById('modalOrder').innerHTML = selectedChoices.map((name, i) => {
+    const dir = DIR_MAP[name] || { icon: 'assets/icons/bigdata.png' };
+    return `<div class="order-item">
+      <div class="order-rank">${i + 1}</div>
+      <img src="${dir.icon}" alt="${name}" class="order-icon">
+      <span class="order-name">${name}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('show'); }
+
+async function confirmSubmit() {
+  closeModal();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '提交中...';
+
+  try {
+    const r = await fetch(API + '/api/student/submit', {
+      method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ' + localStorage.getItem('token')},
+      body: JSON.stringify({choices: selectedChoices})
+    });
+    const data = await r.json();
+    if (!r.ok) { toast(data.error); btn.disabled = false; return; }
+    toast('志愿提交成功！');
+    currentPrefs = {};
+    for (let i = 0; i < selectedChoices.length; i++) currentPrefs['choice' + (i+1)] = selectedChoices[i];
+    currentPrefs.updated_at = new Date().toLocaleString('zh-CN');
+    updateSubmitStatus();
+    renderHistory();
+    btn.disabled = false;
+    btn.textContent = '已提交（可修改后再次提交）';
+  } catch(e) { toast('网络错误'); btn.disabled = false; }
+}
+
+// ============ HISTORY ============
+function renderHistory() {
+  const card = document.getElementById('historyCard');
+  const content = document.getElementById('historyContent');
+  if (!currentPrefs || !currentPrefs.choice1) {
+    card.style.display = 'block';
+    content.innerHTML = '<div class="history-empty">暂无提交记录</div>';
+    return;
+  }
+  card.style.display = 'block';
+
+  const orders = [];
+  for (let i = 1; i <= 4; i++) { if (currentPrefs['choice' + i]) orders.push(currentPrefs['choice' + i]); }
+  const time = currentPrefs.updated_at || '刚刚提交';
+
+  let html = '<div class="history-card">';
+  html += '<div class="history-card-header"><span class="history-time">' + time + '</span><span class="history-status">最新提交</span></div>';
+  orders.forEach((name, i) => {
+    const dir = DIR_MAP[name] || { icon: 'assets/icons/bigdata.png', color: '#666' };
+    html += '<div class="history-card-row"><div class="hc-rank">' + (i + 1) + '</div><img src="' + dir.icon + '" alt="' + name + '" class="hc-img"><span class="hc-name">' + name + '</span></div>';
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// ============ LOGOUT ============
+function toggleSettings() {
+  const m = document.getElementById('settingsMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+// Close on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('#settingsDropdown')) document.getElementById('settingsMenu').style.display = 'none';
+});
+
+async function handleLogout() {
+  const token = localStorage.getItem('token');
+  try { await fetch(API + '/api/auth/logout', { method: 'POST', headers: {'Authorization':'Bearer ' + token} }); } catch(e) {}
+  localStorage.removeItem('token'); localStorage.removeItem('role');
+  window.location.href = 'login.html';
+}
+
+// ============ INIT ============
+(async function init() {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || role !== 'student') { window.location.href = 'login.html'; return; }
+  try {
+    const r = await fetch(API + '/api/auth/verify', { headers: {'Authorization':'Bearer ' + token} });
+    if (!r.ok) { localStorage.removeItem('token'); localStorage.removeItem('role'); window.location.href = 'login.html'; return; }
+    loadMain();
+  } catch(e) { loadMain(); }
+})();
+</script>
+</body>
+</html>

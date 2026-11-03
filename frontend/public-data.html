@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实时数据 - 大二分班志愿填报</title>
+<script src="assets/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary: #3B6DF0;
+  --white: #fff;
+  --border: #e5e7eb;
+  --text: #1a1a2e;
+  --text-light: #6b7280;
+  --text-muted: #999;
+  --shadow: 0 1px 4px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --success: #34a853;
+  --danger: #e74c3c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f5;color:var(--text);min-height:100vh;overflow-x:hidden}
+/* ===== Navbar (matches student.html/admin.html) ===== */
+.navbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.navbar .logo{display:flex;align-items:center;gap:10px}
+.navbar .logo img{height:36px}
+.navbar .logo span{font-size:18px;font-weight:600;color:var(--primary)}
+.navbar .nav-right{font-size:13px;color:var(--text-muted)}
+/* ===== Content ===== */
+.container{max-width:800px;margin:0 auto;padding:20px 16px calc(100px + env(safe-area-inset-bottom, 0px))}
+.cards{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.card{flex:1;min-width:160px;padding:24px 16px;border-radius:20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.card-num{font-size:52px;font-weight:800;line-height:1.1;margin-bottom:6px}
+.card-label{font-size:14px;font-weight:500;letter-spacing:.5px}
+/* RMB: 10元 — 蓝 */
+.card-total{background:linear-gradient(135deg,#E8F0FE,#D6E4FC);color:#1A56B8;border:1px solid rgba(26,86,184,.12)}
+.card-total .card-num{color:#0D47A1}
+.card-total .card-label{color:#5C8FCC}
+/* RMB: 50元 — 绿 */
+.card-submitted{background:linear-gradient(135deg,#EAF5EB,#D8F0DA);color:#2E7D32;border:1px solid rgba(46,125,50,.12)}
+.card-submitted .card-num{color:#1B5E20}
+.card-submitted .card-label{color:#417A64 !important}
+/* RMB: 100元 — 红 */
+.card-unfilled{background:linear-gradient(135deg,#FDEAEA,#FBD8D6);color:#C62828;border:1px solid rgba(198,40,40,.12)}
+.card-unfilled .card-num{color:#B71C1C}
+.card-unfilled .card-label{color:#D24D5C !important}
+.charts-row{display:flex;gap:20px;flex-wrap:wrap}
+.chart-box{flex:1;min-width:300px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.chart-box h3{font-size:16px;color:var(--text);margin-bottom:12px;text-align:center}
+.chart-wrap{height:300px}
+.refresh-bar{text-align:center;margin-top:16px;padding:12px;color:var(--text-muted);font-size:12px}
+/* ===== Interactive Pie Labels ===== */
+.pie-labels{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.pie-label{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;transition:all .2s;border:2px solid transparent;background:#f5f5f5;color:#555;user-select:none}
+.pie-label:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.pie-label.active{border-color:currentColor;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15);font-weight:700}
+.pie-label .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pie-label .lbl-name{white-space:nowrap}
+/* ===== Bottom Bar ===== */
+.bottom-bar{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);width:calc(100vw - 32px);max-width:780px;height:72px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;justify-content:center;align-items:center;border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.6);z-index:200;padding-bottom:env(safe-area-inset-bottom, 0)}
+.bottom-bar .bb-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 32px;border:2px solid transparent;border-radius:10px;background:linear-gradient(#fff, #fff) padding-box,linear-gradient(135deg, #2858d6, #3b6df0, #e8536c) border-box;color:#5a67d8;font-size:15px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:inherit;text-decoration:none;transition:all .35s cubic-bezier(.16,1,.3,1)}
+.bottom-bar .bb-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(40,88,214,.3);color:#5a67d8}
+.bottom-bar .bb-btn:active{transform:translateY(0) scale(.98)}
+.bottom-bar .bb-btn svg{transition:transform .3s}
+.bottom-bar .bb-btn:hover svg{transform:translateX(-3px)}
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .navbar{padding:0 12px;height:52px}
+  .navbar .logo img{height:28px}
+  .navbar .logo span{font-size:15px}
+  .card-num{font-size:44px}
+  .card{padding:18px 12px}
+  .bottom-bar{width:calc(100vw - 16px);border-radius:14px;bottom:calc(10px + env(safe-area-inset-bottom, 0px));height:64px}
+  .bottom-bar .bb-btn{padding:12px 28px;font-size:14px}
+}
+@media(max-width:480px){
+  .navbar{padding:0 8px;height:48px}
+  .navbar .logo img{height:24px}
+  .navbar .logo span{font-size:13px}
+  .card-num{font-size:36px}
+  .card-label{font-size:12px}
+  .chart-wrap{height:240px}
+  .bottom-bar{height:58px;border-radius:12px;bottom:calc(8px + env(safe-area-inset-bottom, 0px))}
+  .bottom-bar .bb-btn{padding:10px 22px;font-size:13px;letter-spacing:1px}
+}
+</style>
+</head>
+<body>
+<!-- ===== Navbar ===== -->
+<div class="navbar">
+  <div class="logo">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+    <span>志愿填报 · 实时数据</span>
+  </div>
+  <div class="nav-right"></div>
+</div>
+
+<!-- ===== Content ===== -->
+<div class="container">
+  <div class="cards">
+    <div class="card card-total">
+      <div class="card-num" id="ldTotal">-</div>
+      <div class="card-label">学生总数</div>
+    </div>
+    <div class="card card-submitted">
+      <div class="card-num" id="ldSubmitted">-</div>
+      <div class="card-label">已填报</div>
+    </div>
+    <div class="card card-unfilled">
+      <div class="card-num" id="ldUnfilled">-</div>
+      <div class="card-label">未填报</div>
+    </div>
+  </div>
+  <!-- === 大数据专业组 === -->
+  <div style="margin-bottom:24px;">
+    <h2 style="text-align:center;font-size:18px;color:#667eea;margin-bottom:14px;">大数据专业组</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div class="chart-box" style="position:relative;">
+        <h3>第一志愿人数</h3>
+        <div class="chart-wrap"><canvas id="bdBarChart"></canvas></div>
+      </div>
+      <div class="chart-box" style="position:relative;">
+        <h3>各方向第一志愿占比</h3>
+        <div class="chart-wrap"><canvas id="bdPieChart"></canvas></div>
+        <div id="bdPieInfo" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#fff;padding:10px 16px;border-radius:8px;text-align:center;pointer-events:none;z-index:10;font-size:13px;line-height:1.5;">
+          <div id="bdPieInfoName" style="font-weight:700;"></div>
+          <div id="bdPieInfoVal" style="opacity:.9;"></div>
+        </div>
+        <div class="pie-labels" id="bdPieLabels"></div>
+      </div>
+    </div>
+  </div>
+  <!-- === 云计算专业组 === -->
+  <div style="margin-bottom:24px;">
+    <h2 style="text-align:center;font-size:18px;color:#00B894;margin-bottom:14px;">云计算专业组</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div class="chart-box" style="position:relative;">
+        <h3>第一志愿人数</h3>
+        <div class="chart-wrap"><canvas id="ccBarChart"></canvas></div>
+      </div>
+      <div class="chart-box" style="position:relative;">
+        <h3>各方向第一志愿占比</h3>
+        <div class="chart-wrap"><canvas id="ccPieChart"></canvas></div>
+        <div id="ccPieInfo" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#fff;padding:10px 16px;border-radius:8px;text-align:center;pointer-events:none;z-index:10;font-size:13px;line-height:1.5;">
+          <div id="ccPieInfoName" style="font-weight:700;"></div>
+          <div id="ccPieInfoVal" style="opacity:.9;"></div>
+        </div>
+        <div class="pie-labels" id="ccPieLabels"></div>
+      </div>
+    </div>
+  </div>
+  <div class="refresh-bar">每30秒自动刷新</div>
+</div>
+
+<!-- ===== Bottom Bar ===== -->
+<div class="bottom-bar">
+  <button class="bb-btn" onclick="goBack()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    返回登录
+  </button>
+</div>
+
+<script>
+(function(){
+  var _bdBar=null, _bdPie=null, _ccBar=null, _ccPie=null;
+
+  var barLabelPlugin = {
+    id:'barValueLabels',
+    afterDraw:function(chart){
+      if(chart.config.type!=='bar') return;
+      var ctx=chart.ctx, meta=chart.getDatasetMeta(0);
+      ctx.save(); ctx.font='bold 15px "Microsoft YaHei",sans-serif'; ctx.fillStyle='#333'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+      meta.data.forEach(function(bar,i){
+        var val=chart.data.datasets[0].data[i];
+        if(val===0) return;
+        ctx.fillText(val+'人', bar.x, bar.y-4);
+      });
+      ctx.restore();
+    }
+  };
+
+  // Plugin: show percentage labels on pie slices
+  var pieLabelPlugin = {
+    id:'piePercentLabels',
+    afterDraw:function(chart){
+      if(chart.config.type!=='pie') return;
+      var ctx=chart.ctx, meta=chart.getDatasetMeta(0);
+      var total=chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);
+      if(total===0) return;
+      meta.data.forEach(function(arc,i){
+        var pct=(chart.data.datasets[0].data[i]/total*100).toFixed(1);
+        if(parseFloat(pct)<4) return;
+        var angle=(arc.startAngle+arc.endAngle)/2, r=arc.outerRadius*0.65;
+        var x=arc.x+Math.cos(angle)*r, y=arc.y+Math.sin(angle)*r;
+        ctx.save(); ctx.fillStyle='#fff'; ctx.font='bold 14px "Microsoft YaHei",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=2;
+        ctx.fillText(pct+'%',x,y);
+        ctx.restore();
+      });
+    }
+  };
+
+  function makeBarChart(canvasId, labels, values, colors){
+    var ctx = document.getElementById(canvasId);
+    return new Chart(ctx, {
+      type:'bar', plugins:[barLabelPlugin],
+      data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderRadius:8}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+        layout:{padding:{top:20}}, plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true,ticks:{stepSize:1,callback:function(v){return v+'人'}},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}
+      }
+    });
+  }
+
+  function makePieChart(canvasId, labels, values, colors, labelBarId, infoBoxId, infoNameId, infoValId){
+    var ctx = document.getElementById(canvasId);
+    var total = values.reduce(function(a,b){return a+b},0);
+    var chart = new Chart(ctx, {
+      type:'pie', plugins:[pieLabelPlugin],
+      data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+        onClick:function(e,els){
+          if(els.length>0) highlightPie(chart, els[0].index, labels, values, colors, total, labelBarId, infoBoxId, infoNameId, infoValId);
+          else clearPieHighlight(chart, labelBarId, infoBoxId);
+        },
+        plugins:{legend:{display:false}}
+      }
+    });
+    // Build labels
+    var labelBar = document.getElementById(labelBarId);
+    labelBar.innerHTML = '';
+    labels.forEach(function(name,i){
+      var span = document.createElement('span');
+      span.className = 'pie-label';
+      span.innerHTML = '<span class="dot" style="background:'+colors[i]+'"></span><span class="lbl-name">'+name+'</span>';
+      (function(idx){ span.onclick=function(){highlightPie(chart,idx,labels,values,colors,total,labelBarId,infoBoxId,infoNameId,infoValId);};
+        span.onmouseenter=function(){highlightPie(chart,idx,labels,values,colors,total,labelBarId,infoBoxId,infoNameId,infoValId);};
+        span.onmouseleave=function(){clearPieHighlight(chart,labelBarId,infoBoxId);};
+      })(i);
+      labelBar.appendChild(span);
+    });
+    return chart;
+  }
+
+  function highlightPie(chart, idx, labels, values, colors, total, labelBarId, infoBoxId, infoNameId, infoValId){
+    chart.setActiveElements([{datasetIndex:0,index:idx}]); chart.update();
+    var lbs = document.getElementById(labelBarId).children;
+    for(var j=0;j<lbs.length;j++) lbs[j].classList.remove('active');
+    if(lbs[idx]) lbs[idx].classList.add('active');
+    var pct = total>0 ? (values[idx]/total*100).toFixed(1) : '0.0';
+    document.getElementById(infoNameId).textContent = labels[idx];
+    document.getElementById(infoValId).textContent = values[idx]+'人 ('+pct+'%)';
+    document.getElementById(infoBoxId).style.display = 'block';
+  }
+
+  function clearPieHighlight(chart, labelBarId, infoBoxId){
+    chart.setActiveElements([]); chart.update();
+    var lbs = document.getElementById(labelBarId).children;
+    for(var j=0;j<lbs.length;j++) lbs[j].classList.remove('active');
+    document.getElementById(infoBoxId).style.display = 'none';
+  }
+
+  function load(){
+    fetch('/api/public/stats').then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(d){
+      document.getElementById('ldTotal').textContent = d.total_students;
+      document.getElementById('ldSubmitted').textContent = d.total_submitted;
+      document.getElementById('ldUnfilled').textContent = d.total_unfilled;
+
+      // Big Data group
+      var bdLabels = d.bigdata_direction_stats.map(function(s){return s.name});
+      var bdValues = d.bigdata_direction_stats.map(function(s){return s.count});
+      var bdColors = ['#2ED573','#1E90FF','#FF4757'];
+      var bdPieLabels = bdLabels;
+      var bdPieValues = bdValues;
+      var bdPieColors = ['#2ED573','#1E90FF','#FF4757'];
+      if(_bdBar) _bdBar.destroy();
+      _bdBar = makeBarChart('bdBarChart', bdLabels, bdValues, bdColors);
+      if(_bdPie) _bdPie.destroy();
+      _bdPie = makePieChart('bdPieChart', bdPieLabels, bdPieValues, bdPieColors, 'bdPieLabels', 'bdPieInfo', 'bdPieInfoName', 'bdPieInfoVal');
+
+      // Cloud group
+      var ccLabels = d.cloud_direction_stats.map(function(s){return s.name});
+      var ccValues = d.cloud_direction_stats.map(function(s){return s.count});
+      var ccColors = ['#00D2D3','#A855F7'];
+      var ccPieLabels = ccLabels;
+      var ccPieValues = ccValues;
+      var ccPieColors = ['#00D2D3','#A855F7'];
+      if(_ccBar) _ccBar.destroy();
+      _ccBar = makeBarChart('ccBarChart', ccLabels, ccValues, ccColors);
+      if(_ccPie) _ccPie.destroy();
+      _ccPie = makePieChart('ccPieChart', ccPieLabels, ccPieValues, ccPieColors, 'ccPieLabels', 'ccPieInfo', 'ccPieInfoName', 'ccPieInfoVal');
+    }).catch(function(e){ console.error('数据加载失败:', e); });
+  }
+
+  load();
+  setInterval(load, 30000);
+})();
+
+
+
+// Back to login, clear session
+function goBack(){
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>大二分班系统 - 管理端</title>
+    <style>/* =================== 全局 =================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --admin-color: #e63946;
+    --admin-dark: #c1121f;
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text: #1a1a2e;
+    --text-secondary: #6c757d;
+    --border: #e0e0e0;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 12px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* =================== 登录页导航栏 =================== */
+.login-navbar {
+    background: var(--card-bg);
+    padding: 8px 24px;
+    box-shadow: var(--shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.navbar-logo {
+    width: 160px;
+    height: auto;
+    max-height: 54px;
+    object-fit: contain;
+}
+
+/* =================== 登录页 =================== */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    padding: 60px 20px 20px;
+}
+
+.login-box {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h1 {
+    font-size: 24px;
+    color: var(--primary);
+    margin: 0 0 6px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* 标签切换 */
+.tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+}
+
+.login-form {
+    display: none;
+}
+
+.login-form.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+    background: var(--bg);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.btn-admin {
+    background: var(--admin-color);
+    color: white;
+}
+
+.btn-admin:hover {
+    background: var(--admin-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+}
+
+.btn-secondary {
+    background: var(--bg);
+    color: var(--text);
+    border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+}
+
+.hint {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 12px;
+}
+
+.error-msg {
+    color: var(--danger);
+    font-size: 14px;
+    text-align: center;
+    margin-top: 12px;
+    min-height: 20px;
+}
+
+/* =================== 主内容 =================== */
+.main-container {
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.top-bar {
+    background: var(--card-bg);
+    padding: 0 16px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.top-bar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.top-logo {
+    width: 160px;
+    height: auto;
+    max-height: 54px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.user-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.btn-logout {
+    padding: 6px 16px;
+    border: 2px solid var(--danger);
+    background: transparent;
+    color: var(--danger);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+}
+
+/* =================== 修改密码按钮 =================== */
+.pwd-change-bar {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.btn-change-pwd {
+    padding: 6px 16px;
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-change-pwd:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* =================== 信息卡片 =================== */
+.info-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.info-card-title {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 20px;
+    color: var(--primary);
+    margin: 0 0 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* =================== 时间状态 =================== */
+.time-status {
+    background: var(--card-bg);
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    box-shadow: var(--shadow);
+}
+
+.time-status.time-expired {
+    border-left-color: var(--danger);
+    color: var(--danger);
+    font-weight: 500;
+}
+
+/* =================== 志愿填报 =================== */
+.preference-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 18px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.major-hint {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+.section-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.direction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    min-height: 100px;
+}
+
+.direction-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: grab;
+    transition: all 0.25s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.direction-card:hover {
+    border-color: var(--primary);
+    background: #f8f9ff;
+}
+
+.direction-card.dragging {
+    opacity: 0.5;
+    background: #e8ecff;
+    border-color: var(--primary);
+}
+
+.direction-card.drag-over {
+    border-color: var(--primary);
+    background: #eef0ff;
+    transform: scale(1.02);
+}
+
+.drag-handle {
+    font-size: 20px;
+    color: var(--text-secondary);
+    cursor: grab;
+    padding: 0 4px;
+}
+
+.card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.card-icon-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+}
+
+.card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.card-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.action-bar {
+    display: flex;
+    gap: 12px;
+}
+
+.action-bar .btn {
+    flex: 1;
+}
+
+.status-msg {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    display: none;
+}
+
+.status-msg.success {
+    display: block;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-msg.error {
+    display: block;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* =================== 已保存志愿展示 =================== */
+.saved-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.ranking-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: 10px;
+}
+
+.rank-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.rank-1 { background: #FF6B6B; }
+.rank-2 { background: #FFA94D; }
+.rank-3 { background: #FFD43B; color: #333; }
+.rank-4 { background: #69DB7C; color: #333; }
+
+.rank-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    width: 64px;
+    flex-shrink: 0;
+}
+
+.rank-name {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.rank-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    object-fit: cover;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+/* =================== 模态框 =================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.modal-hint {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 14px;
+}
+
+.modal-content .btn {
+    margin-top: 8px;
+}
+
+/* =================== 管理端 =================== */
+.admin-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px 12px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.stat-card .stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.stat-total .stat-number { color: var(--primary); }
+.stat-submitted .stat-number { color: var(--success); }
+.stat-unfilled .stat-number { color: var(--danger); }
+.stat-bigdata .stat-number { color: #FF6B6B; }
+.stat-cloud .stat-number { color: #45B7D1; }
+
+/* 图表 */
+.chart-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.charts-row .chart-section {
+    margin-bottom: 0;
+}
+
+.chart-container {
+    height: 400px;
+    position: relative;
+    margin-top: 12px;
+}
+
+/* 统计表 */
+.table-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.stats-table th {
+    background: var(--bg);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+}
+
+.stats-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.stats-table tr:hover td {
+    background: #f8f9ff;
+}
+
+.dir-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* 设置区 */
+.settings-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+
+.settings-form {
+    margin-top: 12px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-form .btn {
+    width: auto;
+    padding: 10px 24px;
+}
+
+/* 导出区 */
+.export-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.btn-export {
+    flex: 1;
+    padding: 14px 20px;
+    border: 2px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.btn-export:hover {
+    border-color: var(--primary);
+    background: #f8f9ff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.export-hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 12px;
+    line-height: 1.8;
+}
+
+/* 大屏幕时显示系名 */
+/* =================== 响应式 =================== */
+@media (max-width: 768px) {
+    .login-box {
+        padding: 28px 20px;
+    }
+    
+    .info-card {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+    }
+    
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        height: 280px;
+    }
+    
+    .top-bar {
+        padding: 8px 12px;
+    }
+    
+    .top-logo {
+        width: 130px;
+        max-height: 44px;
+    }
+    
+    .content, .admin-content {
+        padding: 12px 8px 30px;
+    }
+    
+    .direction-card {
+        padding: 10px 12px;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .search-box {
+        flex-direction: row;
+    }
+    
+    .search-section, .settings-section, .export-section, .chart-section, .table-section {
+        padding: 16px;
+    }
+    
+    .login-box {
+        margin-top: 50px;
+    }
+}
+
+/* =================== 学生端确认弹窗 =================== */
+.confirm-ranking {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+}
+.confirm-ranking .rank-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: #fff;
+    border-radius: 8px; margin-bottom: 8px;
+    font-size: 15px; border: 1px solid #eee;
+}
+.confirm-ranking .rank-badge {
+    width: 28px; height: 28px; line-height: 28px;
+    text-align: center; background: var(--primary);
+    color: #fff; border-radius: 50%;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.confirm-icon {
+    width: 36px; height: 36px; object-fit: contain;
+    border-radius: 8px; flex-shrink: 0;
+}
+.save-time {
+    text-align: center; font-size: 13px;
+    color: var(--text-secondary); margin-bottom: 12px;
+    padding: 6px; background: #f0f2f5; border-radius: 6px;
+}
+
+/* =================== 方向池 =================== */
+.pool-label {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-secondary); margin: 12px 0 8px;
+}
+.pool-empty {
+    text-align: center; padding: 20px; color: #bbb;
+    font-size: 14px; border: 2px dashed #ddd;
+    border-radius: 12px; display: none;
+}
+.direction-pool {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px; margin-bottom: 16px;
+}
+.pool-card {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; background: #f8f9fa;
+    border: 2px dashed #ddd; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s;
+}
+.pool-card:hover {
+    border-color: var(--primary);
+    background: #f0f2ff; transform: translateY(-2px);
+}
+.pool-card .card-icon-img {
+    width: 36px; height: 36px; border-radius: 8px;
+    flex-shrink: 0; background-size: cover;
+}
+.pool-card .card-body { flex: 1; min-width: 0; }
+.pool-card .card-title { font-size: 13px; font-weight: 600; }
+.pool-card .card-desc { font-size: 11px; color: #999; }
+.pool-arrow {
+    width: 24px; height: 24px; line-height: 24px;
+    border-radius: 50%; background: var(--primary);
+    color: #fff; text-align: center; font-size: 16px;
+    font-weight: 700; flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card .stat-number {
+        font-size: 22px;
+    }
+    
+    .stat-card {
+        padding: 14px 8px;
+    }
+    
+    .info-card {
+        padding: 14px;
+    }
+    
+    .top-logo {
+        width: 110px;
+        max-height: 38px;
+    }
+    
+    .navbar-logo {
+        width: 130px;
+        max-height: 44px;
+    }
+    
+    .top-bar-actions {
+        gap: 6px;
+    }
+    
+    .btn-logout {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    
+    .user-info {
+        font-size: 12px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+    }
+}
+
+/* =================== 搜索与密码管理 =================== */
+.search-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+.search-box {
+    display: flex; gap: 10px; margin-top: 12px;
+}
+.search-box input {
+    flex: 1; padding: 10px 14px; border: 2px solid var(--border);
+    border-radius: 10px; font-size: 15px;
+}
+.search-box input:focus { outline: none; border-color: var(--primary); }
+.search-box .btn { width: auto; padding: 10px 20px; }
+.btn-reset-pwd {
+    padding: 5px 12px; border: 1px solid var(--warning);
+    background: #fff; color: var(--warning); border-radius: 6px;
+    font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.btn-reset-pwd:hover { background: var(--warning); color: #fff; }
+
+/* =================== 粒子背景 =================== */
+.login-container, .login-navbar { position: relative; z-index: 2; }
+
+/* =================== 水波涟漪 =================== */
+.login-box { position: relative; overflow: hidden; }
+.ripple {
+    position: absolute; border-radius: 50%;
+    border: 1.5px solid rgba(67,97,238,0.4);
+    box-shadow: 0 0 8px rgba(67,97,238,0.15), inset 0 0 8px rgba(67,97,238,0.08);
+    animation: rippleOut 1.4s cubic-bezier(0.22,0.61,0.36,1) forwards;
+    pointer-events: none; transform: translate(-50%, -50%);
+}
+@keyframes rippleOut {
+    0% { width: 0; height: 0; opacity: 0.8; border-width: 2.5px; }
+    40% { opacity: 0.5; border-width: 1.5px; }
+    100% { width: var(--sz, 280px); height: var(--sz, 280px); opacity: 0; border-width: 0.2px; }
+}
+
+/* =================== 底部状态栏 =================== */
+.bottom-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);
+  max-width: 780px;
+  height: 66px;
+  background: var(--card-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 6px 12px -4px rgba(0,0,0,0.08),
+    0 4px 24px rgba(0,0,0,0.10),
+    0 1px 3px rgba(0,0,0,0.04);
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: box-shadow 0.4s;
+}
+.bb-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bb-item:active { transform: scale(0.92); }
+.bb-icon {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  fill: #222327;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+.bb-text {
+  transform: translateY(20px);
+  font-size: 0.72em;
+  font-weight: 600;
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  color: #222327;
+}
+.bb-item.active .bb-icon {
+  transform: translateY(-30px);
+  fill: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.bb-item.active .bb-text {
+  opacity: 1;
+  transform: translateY(10px);
+  color: var(--primary);
+}
+.bb-indicator {
+  position: absolute;
+  width: 66px;
+  height: 66px;
+  background: var(--primary);
+  left: calc(50% - 50px - 33px);
+  top: -37%;
+  border-radius: 50%;
+  border: 5px solid var(--bg);
+  transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 -2px 8px rgba(0,0,0,0.12),
+    0 4px 8px rgba(0,0,0,0.08);
+}
+.bb-item:nth-child(1).active ~ .bb-indicator { transform: translateX(0); }
+.bb-item:nth-child(2).active ~ .bb-indicator { transform: translateX(100px); }
+@media (max-width: 480px) {
+  .bottom-bar { width: calc(100vw - 20px); border-radius: 12px; bottom: 10px; }
+}
+</style>
+    <script src="assets/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="main-container">
+        <header class="top-bar">
+          <div class="top-bar-inner" style="display:flex;align-items:center;justify-content:space-between;">
+            <img src="logo.png" alt="Logo" onerror="this.style.display='none'" style="height:36px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="assets/icons/ic_admin_authority.png" alt="管理员" style="width:30px;height:30px;object-fit:contain;flex-shrink:0;">
+              <span id="adminDisplayName" style="font-size:14px;font-weight:600;color:var(--text);cursor:default;white-space:nowrap;">管理员</span>
+              <div style="position:relative;" id="settingsDropdown">
+                <button onclick="toggleSettingsMenu()" style="background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;">
+                  <img src="assets/icons/ic_settings.png" alt="设置" style="width:28px;height:28px;object-fit:contain;">
+                </button>
+                <div id="settingsMenu" style="display:none;position:absolute;top:36px;right:0;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:200;min-width:120px;overflow:hidden;">
+                  <button onclick="document.getElementById('settingsMenu').style.display='none';openNameModal()" style="display:block;width:100%;padding:10px 16px;border:none;background:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;color:var(--primary);border-bottom:1px solid var(--border);">修改姓名</button>
+                  <button onclick="document.getElementById('settingsMenu').style.display='none';logout()" style="display:block;width:100%;padding:10px 16px;border:none;background:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;color:#e74c3c;">退出登录</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="admin-content" id="adminContent">
+            <!-- 概览统计 -->
+            <div class="stats-grid">
+                <div class="stat-card stat-total" onclick="showStatDetail('total')">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">学生总数</div>
+                </div>
+                <div class="stat-card stat-submitted" onclick="showStatDetail('submitted')">
+                    <div class="stat-number" id="totalSubmitted">0</div>
+                    <div class="stat-label">已填报</div>
+                </div>
+                <div class="stat-card stat-unfilled" onclick="showStatDetail('unfilled')">
+                    <div class="stat-number" id="totalUnfilled">0</div>
+                    <div class="stat-label">未填报</div>
+                </div>
+                <div class="stat-card stat-bigdata" onclick="showStatDetail('bigdata')">
+                    <div class="stat-number" id="bigdataCount">0</div>
+                    <div class="stat-label">大数据</div>
+                </div>
+                <div class="stat-card stat-cloud" onclick="showStatDetail('cloud')">
+                    <div class="stat-number" id="cloudCount">0</div>
+                    <div class="stat-label">云计算</div>
+                </div>
+            </div>
+
+            <!-- 详情弹窗 -->
+            <div id="detailModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:600px;">
+                    <h3 id="detailTitle"></h3>
+                    <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+                        <table class="stats-table" id="detailTable"></table>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                        <button class="btn btn-export" onclick="exportCurrentDetail()" style="width:auto;padding:8px 16px;font-size:13px;">📥 导出此表为Excel</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('detailModal').style.display='none'" style="width:auto;padding:8px 24px;">关闭</button>
+                    </div>
+                </div>
+            </div>
+
+                <!-- 修改姓名弹窗 -->
+            <div id="nameModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:380px;">
+                    <h3 style="text-align:center;margin-bottom:8px;">修改管理员姓名</h3>
+                    <p style="text-align:center;font-size:13px;color:var(--text-secondary);margin-bottom:16px;">修改后将显示在导航栏中</p>
+                    <div class="form-group">
+                        <label>管理员姓名</label>
+                        <input type="text" id="newAdminName" placeholder="请输入新的姓名" onkeydown="if(event.key==='Enter')saveAdminName()">
+                    </div>
+                    <div id="nameError" class="error-msg"></div>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <button class="btn btn-primary" onclick="saveAdminName()" style="flex:1;">保存</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('nameModal').style.display='none'" style="flex:1;">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 初始化确认弹窗 -->
+            <div id="resetModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:400px;">
+                    <h3 style="color:#e74c3c;">⚠ 危险操作</h3>
+                    <p style="margin-bottom:16px;">将清空<strong>所有</strong>学生的志愿数据，并重置密码为默认。此操作不可撤销！</p>
+                    <div class="form-group">
+                        <label>输入管理员密码确认</label>
+                        <input type="password" id="resetPassword" placeholder="请输入管理员密码">
+                    </div>
+                    <div id="resetError" class="error-msg"></div>
+                    <div style="display:flex;gap:10px;margin-top:12px;">
+                        <button class="btn" style="background:#e74c3c;color:#fff;flex:1;" onclick="doResetAll()">确认清空</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('resetModal').style.display='none'" style="flex:1;">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修改密码弹窗 -->
+            <div id="pwdModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:400px;">
+                    <h3>修改登录密码</h3>
+                    <div class="form-group">
+                        <label>旧密码</label>
+                        <input type="password" id="oldPassword" placeholder="请输入旧密码">
+                    </div>
+                    <div class="form-group">
+                        <label>新密码</label>
+                        <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）">
+                    </div>
+                    <div class="form-group">
+                        <label>确认新密码</label>
+                        <input type="password" id="confirmNewPassword" placeholder="请再次输入新密码">
+                    </div>
+                    <div id="pwdError" class="error-msg"></div>
+                    <div style="display:flex;gap:10px;margin-top:12px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="changeAdminPassword()">确认修改</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('pwdModal').style.display='none'" style="flex:1;">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 - 大数据专业组 -->
+            <h2 style="text-align:center;font-size:18px;color:#667eea;margin:16px 0 12px;font-weight:700;">大数据专业组</h2>
+            <div class="charts-row">
+                <div class="chart-section">
+                    <h3 class="section-title">第一志愿人数</h3>
+                    <div class="chart-container"><canvas id="aBdBarChart"></canvas></div>
+                </div>
+                <div class="chart-section">
+                    <h3 class="section-title">各方向与未填报占比</h3>
+                    <div class="chart-container"><canvas id="aBdPieChart"></canvas></div>
+                </div>
+            </div>
+            <!-- 图表区域 - 云计算专业组 -->
+            <h2 style="text-align:center;font-size:18px;color:#00B894;margin:16px 0 12px;font-weight:700;">云计算专业组</h2>
+            <div class="charts-row">
+                <div class="chart-section">
+                    <h3 class="section-title">第一志愿人数</h3>
+                    <div class="chart-container"><canvas id="aCcBarChart"></canvas></div>
+                </div>
+                <div class="chart-section">
+                    <h3 class="section-title">各方向与未填报占比</h3>
+                    <div class="chart-container"><canvas id="aCcPieChart"></canvas></div>
+                </div>
+            </div>
+            <!-- 详细统计表 -->
+            <div class="table-section">
+                <h3 class="section-title">各方向各志愿详细统计</h3>
+                <div class="table-responsive">
+                    <table class="stats-table" id="statsTable">
+                        <thead>
+                            <tr>
+                                <th>方向</th>
+                                <th>第一志愿</th>
+                                <th>第二志愿</th>
+                                <th>第三志愿</th>
+                                <th>第四志愿</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 时间设置 -->
+            <div class="settings-section">
+                <h3 class="section-title">志愿填报时间设置</h3>
+                <div class="settings-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>开始时间</label>
+                            <input type="datetime-local" id="startTime">
+                        </div>
+                        <div class="form-group">
+                            <label>截止时间</label>
+                            <input type="datetime-local" id="endTime">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveTimeSettings()">保存时间设置</button>
+                    <button class="btn btn-danger-outline" onclick="resetAllConfirm()" style="margin-left:10px;background:#fff;color:#e74c3c;border:2px solid #e74c3c;">⚠ 一键初始化（清空志愿+重置密码）</button>
+                    <div id="timeSettingsStatus" class="status-msg"></div>
+                </div>
+            </div>
+
+            <!-- 学生密码管理 -->
+            <div class="search-section" id="passwordSection">
+                <h3 class="section-title">学生密码管理</h3>
+                <div class="search-box">
+                    <input type="text" id="searchKeyword" placeholder="输入学号或姓名搜索..." onkeyup="if(event.key==='Enter')searchStudent()">
+                    <button class="btn btn-primary" onclick="searchStudent()">搜索</button>
+                </div>
+                <div id="searchStatus" class="status-msg"></div>
+                <div class="table-responsive" id="searchResultTable" style="display:none;"></div>
+            </div>
+
+            <!-- 账户锁定管理 -->
+            <div class="search-section" style="margin-top:20px;" id="lockedSection">
+                <h3 class="section-title">🔒 账户锁定管理</h3>
+                <div id="lockedList" style="font-size:13px;">加载中...</div>
+            </div>
+
+            <!-- 数据导出 -->
+            <div class="export-section">
+                <h3 class="section-title">数据导出</h3>
+                <div class="export-buttons">
+                    <button class="btn btn-export" onclick="exportData('direction')">
+                        📊 按6个方向导出
+                    </button>
+                    <button class="btn btn-export" onclick="exportData('major')">
+                        📋 按2个专业导出
+                    </button>
+                    <button class="btn btn-export btn-export-info" onclick="exportStudentsInfo()">
+                        👥 导出学生完整信息
+                    </button>
+                </div>
+                <p class="export-hint">按方向导出：每个方向一个Sheet，显示志愿顺序<br>按专业导出：大数据3个志愿列，云计算2个志愿列<br>导出完整信息：学号、姓名、性别、密码状态、全部志愿</p>
+            </div>
+
+            <!-- 账号管理（超级管理员专用） -->
+            <div class="export-section" id="accountSection" style="display:none;">
+                <h3 class="section-title">账号管理</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;">
+                    <select id="acctType" onchange="loadAccounts()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;">
+                        <option value="students">学生账号</option>
+                        <option value="admins">管理员账号</option>
+                    </select>
+                    <select id="acctStatus" onchange="loadAccounts()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;">
+                        <option value="">全部状态</option>
+                        <option value="active">正常</option>
+                        <option value="disabled">已注销</option>
+                    </select>
+                    <input type="text" id="acctKeyword" placeholder="搜索学号/姓名/账号" oninput="loadAccounts()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;flex:1;min-width:150px;">
+                    <button class="btn btn-danger btn-sm" onclick="batchDeactivate()">批量注销</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                        <thead><tr style="background:#f8f9fa;" id="acctThead"></tr></thead>
+                        <tbody id="acctTbody"></tbody>
+                    </table>
+                </div>
+                <div id="acctInfo" style="margin-top:8px;font-size:12px;color:var(--text-light);"></div>
+            </div>
+
+            <!-- 批量导入（超级管理员专用） -->
+            <div class="export-section" id="importSection" style="display:none;">
+                <h3 class="section-title">📥 批量导入</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+                    <button class="btn btn-outline" onclick="downloadTemplate('students')" style="font-size:13px;">📄 下载学生导入模板</button>
+                    <button class="btn btn-outline" onclick="downloadTemplate('admins')" style="font-size:13px;">📄 下载管理员导入模板</button>
+                </div>
+                
+                <!-- 导入学生 -->
+                <div style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+                    <h4 style="margin-bottom:8px;">导入学生账号</h4>
+                    <input type="file" id="studentFileInput" accept=".xlsx,.xls,.csv" style="margin-bottom:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="importStudents()">上传并导入</button>
+                    <div id="importStudentResult" style="margin-top:8px;font-size:13px;"></div>
+                </div>
+                
+                <!-- 导入管理员 -->
+                <div style="border:1px solid var(--border);border-radius:8px;padding:16px;">
+                    <h4 style="margin-bottom:8px;">导入普通管理员</h4>
+                    <input type="file" id="adminFileInput" accept=".xlsx,.xls,.csv" style="margin-bottom:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="importAdmins()">上传并导入</button>
+                    <div id="importAdminResult" style="margin-top:8px;font-size:13px;"></div>
+                </div>
+                
+                <!-- 手动导入 -->
+                <div style="margin-top:16px;text-align:center;">
+                    <button class="btn btn-outline" onclick="openManualImport()" style="font-size:14px;padding:10px 24px;">✍️ 手动录入导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Manual Import Modal -->
+<div id="manualImportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;">
+<div style="background:#fff;border-radius:16px;padding:28px;max-width:620px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:auto;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+  <h3 style="margin:0;font-size:18px;">✍️ 手动录入导入</h3>
+  <button onclick="closeManualImport()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;">✕</button>
+</div>
+
+<!-- Type selector -->
+<div style="display:flex;gap:8px;margin-bottom:16px;">
+  <button class="mitab active" onclick="switchMITab('student')" id="miTabStudent">录入学生</button>
+  <button class="mitab" onclick="switchMITab('admin')" id="miTabAdmin">录入管理员</button>
+</div>
+
+<!-- Student form -->
+<div id="miStudentForm">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div><label style="font-size:12px;color:#666;">姓名 *</label><input class="mifld" id="misName" placeholder="姓名"></div>
+    <div><label style="font-size:12px;color:#666;">学号 *</label><input class="mifld" id="misId" placeholder="10位学号"></div>
+    <div><label style="font-size:12px;color:#666;">性别</label><select class="mifld" id="misGender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select></div>
+    <div><label style="font-size:12px;color:#666;">原班级 *</label><input class="mifld" id="misOriClass" placeholder="例如:大数据1班"></div>
+    <div><label style="font-size:12px;color:#666;">专业 *</label><select class="mifld" id="misMajor"><option value="">请选择</option><option value="大数据">大数据</option><option value="云计算">云计算</option></select></div>
+  </div>
+  <div style="font-size:11px;color:#999;margin:6px 0;">密码默认为学号，可在账号管理中查看</div>
+  <button class="btn btn-primary btn-sm" onclick="addManualRecord()" style="margin-top:8px;width:100%;">确认添加</button>
+</div>
+
+<!-- Admin form -->
+<div id="miAdminForm" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div><label style="font-size:12px;color:#666;">姓名 *</label><input class="mifld" id="miaName" placeholder="姓名"></div>
+    <div><label style="font-size:12px;color:#666;">账号 *</label><input class="mifld" id="miaUser" placeholder="登录账号"></div>
+    <div><label style="font-size:12px;color:#666;">密码 *</label><input class="mifld" id="miaPwd" placeholder="登录密码"></div>
+  </div>
+  <div style="font-size:11px;color:#999;margin:6px 0;">导入的均为普通管理员</div>
+  <button class="btn btn-primary btn-sm" onclick="addManualRecord()" style="margin-top:8px;width:100%;">确认添加</button>
+</div>
+
+<!-- Records list -->
+<div style="margin-top:16px;max-height:240px;overflow-y:auto;border:1px solid #eee;border-radius:8px;">
+  <table style="width:100%;font-size:12px;border-collapse:collapse;" id="miRecordTable">
+    <thead><tr style="background:#f5f7fa;" id="miRecordHead"></tr></thead>
+    <tbody id="miRecordBody"><tr><td colspan="99" style="text-align:center;color:#999;padding:20px;">暂无记录</td></tr></tbody>
+  </table>
+</div>
+<div style="text-align:right;font-size:12px;color:#666;margin-top:4px;" id="miCount">共 0 条记录</div>
+<div style="color:#e74c3c;font-size:12px;margin-top:4px;display:none;" id="miError"></div>
+
+<div style="display:flex;gap:10px;margin-top:16px;">
+  <button class="btn btn-primary" onclick="submitManualImport()" style="flex:1;" id="miSubmitBtn" disabled>提交导入 (0条)</button>
+  <button class="btn btn-secondary" onclick="closeManualImport()" style="flex:1;">取消</button>
+</div>
+</div>
+</div>
+
+<style>
+.mitab{padding:6px 18px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:13px;font-family:inherit}
+.mitab.active{background:#667eea;color:#fff;border-color:#667eea}
+.mifld{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box}
+.mifld:focus{outline:none;border-color:#667eea}
+</style>
+
+    <script>
+        const API_BASE = '';
+        let aBdBarChart=null, aBdPieChart=null, aCcBarChart=null, aCcPieChart=null;
+
+        // ====== 页面初始化 ======
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Close settings dropdown on outside click
+            document.addEventListener('click', function(e) {
+                const dd = document.getElementById('settingsDropdown');
+                if (dd && !dd.contains(e.target)) {
+                    const m = document.getElementById('settingsMenu');
+                    if (m) m.style.display = 'none';
+                }
+            });
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            
+            // 没有token或不是管理员 → 跳转登录页
+            if (!token || role !== 'admin') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Verify token and load
+            try {
+                const vr = await fetch(API_BASE + '/api/auth/verify', {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                if (vr.ok) {
+                    const adminName = localStorage.getItem('admin_name') || '管理员';
+                    document.getElementById('adminDisplayName').textContent = adminName;
+                    document.getElementById('adminContent').style.display = 'block';
+                    
+                    // Role-based visibility
+                    const adminRole = localStorage.getItem('admin_role') || 'super';
+                    if (adminRole !== 'super') {
+                        const settingsSec = document.querySelector('.settings-section');
+                        if (settingsSec) settingsSec.style.display = 'none';
+                        const pwdSec = document.getElementById('passwordSection');
+                        if (pwdSec) pwdSec.style.display = 'none';
+                        const lockedSec = document.getElementById('lockedSection');
+                        if (lockedSec) lockedSec.style.display = 'none';
+                        const bb = document.getElementById('bottomBar');
+                        if (bb) bb.style.display = 'none';
+                        const exportSec = document.querySelector('.export-section');
+                        if (exportSec) exportSec.style.display = 'none';
+                    } else {
+        // Show import section for super admins
+        const importSec = document.getElementById('importSection');
+        if (importSec) importSec.style.display = '';
+        // Show account management for super admins
+        const acctSec = document.getElementById('accountSection');
+        if (acctSec) acctSec.style.display = '';
+      }
+                    // Add change password to settings menu for all admins
+                    const menu = document.getElementById('settingsMenu');
+                    if (menu) {
+                        const cpBtn = document.createElement('button');
+                        cpBtn.textContent = '修改密码';
+                        cpBtn.style.cssText = 'display:block;width:100%;padding:10px 16px;border:none;background:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;color:var(--primary);border-bottom:1px solid var(--border);';
+                        cpBtn.onclick = function() { document.getElementById('settingsMenu').style.display='none'; openPasswordModal(); };
+                        menu.insertBefore(cpBtn, menu.firstChild);
+                    }
+                    
+                    await loadStats();
+                    await loadSettings();
+                    await loadLockedList();
+                    return;
+                }
+            } catch(e) {}
+            
+            // Token expired or invalid → redirect
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('admin_name');
+            window.location.href = 'login.html';
+        });
+
+        // ====== Logout ======
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('admin_name');
+            localStorage.removeItem('admin_role');
+            window.location.href = 'login.html';
+        }
+
+        // ====== Change Password (all admins) ======
+        function openPasswordModal() {
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('pwdError').textContent = '';
+            document.getElementById('pwdModal').style.display = 'flex';
+        }
+
+        async function changeAdminPassword() {
+            const oldPwd = document.getElementById('oldPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+            const errEl = document.getElementById('pwdError');
+            
+            if (!oldPwd || !newPwd || !confirmPwd) { errEl.textContent = '请填写完整'; return; }
+            if (newPwd.length < 6) { errEl.textContent = '新密码至少6位'; return; }
+            if (newPwd !== confirmPwd) { errEl.textContent = '两次密码不一致'; return; }
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    document.getElementById('pwdModal').style.display = 'none';
+                } else {
+                    errEl.textContent = data.error;
+                }
+            } catch(e) {
+                errEl.textContent = '修改失败，请重试';
+            }
+        }
+
+        // ====== Settings Dropdown ======
+        function toggleSettingsMenu() {
+            const m = document.getElementById('settingsMenu');
+            m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // ====== 账号管理 ======
+        async function loadAccounts() {
+            const type = document.getElementById('acctType').value;
+            const status = document.getElementById('acctStatus').value;
+            const keyword = document.getElementById('acctKeyword').value;
+            
+            try {
+                const params = new URLSearchParams({ type, status, keyword });
+                const res = await fetch(API_BASE + '/api/admin/accounts?' + params, {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+                });
+                const data = await res.json();
+                
+                const thead = document.getElementById('acctThead');
+                const tbody = document.getElementById('acctTbody');
+                const info = document.getElementById('acctInfo');
+                info.textContent = `共 ${data.total} 个账号`;
+                
+                if (data.type === 'students') {
+                    thead.innerHTML = '<th><input type="checkbox" onclick="toggleAll(this,\\"acctCb\\")"></th><th>学号</th><th>姓名</th><th>性别</th><th>专业</th><th>班级</th><th>密码</th><th>状态</th><th>锁定</th><th>操作</th>';
+                    tbody.innerHTML = '';
+                    data.rows.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #eee';
+                        tr.innerHTML = `
+                            <td><input type="checkbox" class="acctCb" value="${r.student_id}"></td>
+                            <td>${r.student_id}</td><td>${r.name}</td><td>${r.gender||'-'}</td><td>${r.major||'-'}</td><td>${r.class_name||'-'}</td><td style="font-family:monospace;font-size:12px;">${r.password||''}</td>
+                            <td style="color:${r.status==='disabled'?'#e74c3c':'#34a853'}">${r.status==='disabled'?'已注销':'正常'}</td>
+                            <td>${r.locked?'🔒':''}</td>
+                            <td>${r.status==='active' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;padding:4px 10px;" onclick="deactivateAccount('student','${r.student_id}')">注销</button>` : '-'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    thead.innerHTML = '<th><input type="checkbox" onclick="toggleAll(this,\\"acctCb\\")"></th><th>ID</th><th>账号</th><th>姓名</th><th>密码</th><th>角色</th><th>状态</th><th>操作</th>';
+                    tbody.innerHTML = '';
+                    data.rows.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #eee';
+                        const isSuper = r.role === 'super';
+                        tr.innerHTML = `
+                            <td><input type="checkbox" class="acctCb" value="${r.id}" ${isSuper?'disabled':''}></td>
+                            <td>${r.id}</td><td>${r.username}</td><td>${r.display_name}</td><td style="font-family:monospace;font-size:12px;">${r.password}</td>
+                            <td>${isSuper?'超级管理员':'普通管理员'}</td>
+                            <td style="color:${r.status==='disabled'?'#e74c3c':'#34a853'}">${r.status==='disabled'?'已注销':'正常'}</td>
+                            <td>${!isSuper && r.status==='active' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;padding:4px 10px;" onclick="deactivateAccount('admin','${r.id}')">注销</button>` : '-'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function toggleAll(cb, cls) {
+            document.querySelectorAll('.' + cls).forEach(c => { if (!c.disabled) c.checked = cb.checked; });
+        }
+
+        async function deactivateAccount(type, id) {
+            const reason = prompt('请输入注销原因（可选）：');
+            if (reason === null) return;
+            if (!confirm(`确定要注销 ${type==='student'?'学号':'账号'} 「${id}」吗？\n注销后该账号将无法登录。`)) return;
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/deactivate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ type: type, id: id, reason: reason })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    loadAccounts();
+                } else {
+                    alert(data.error);
+                }
+            } catch(e) { alert('操作失败'); }
+        }
+
+        async function batchDeactivate() {
+            const checked = document.querySelectorAll('.acctCb:checked');
+            if (checked.length === 0) { alert('请先勾选要注销的账号'); return; }
+            
+            const reason = prompt('请输入注销原因（可选）：');
+            if (reason === null) return;
+            if (!confirm(`确定要批量注销 ${checked.length} 个账号吗？\n注销后这些账号将无法登录。`)) return;
+            
+            const type = document.getElementById('acctType').value === 'students' ? 'student' : 'admin';
+            const ids = Array.from(checked).map(c => c.value);
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/batch-deactivate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ type, ids, reason })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    let msg = data.message;
+                    if (data.failures && data.failures.length > 0) {
+                        msg += '\n失败：\n' + data.failures.join('\n');
+                    }
+                    alert(msg);
+                    loadAccounts();
+                } else {
+                    alert(data.error);
+                }
+            } catch(e) { alert('操作失败'); }
+        }
+
+        // Load accounts on init for super admins
+        if (localStorage.getItem('admin_role') === 'super') {
+            setTimeout(() => loadAccounts(), 500);
+        }
+        function downloadTemplate(type) {
+            const url = API_BASE + '/api/admin/template-' + type;
+            fetch(url, { headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')} })
+                .then(r => r.blob())
+                .then(blob => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = type === 'students' ? '学生导入模板.xlsx' : '管理员导入模板.xlsx';
+                    a.click();
+                });
+        }
+
+        async function importStudents() {
+            const fileInput = document.getElementById('studentFileInput');
+            const resultEl = document.getElementById('importStudentResult');
+            if (!fileInput.files[0]) { resultEl.innerHTML = '<span style="color:red;">请选择文件</span>'; return; }
+            
+            resultEl.innerHTML = '正在导入...';
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/import-students', {
+                    method: 'POST',
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    let html = `<span style="color:green;">✅ ${data.message}</span>`;
+                    if (data.failures && data.failures.length > 0) {
+                        html += '<br><span style="color:#e74c3c;">失败明细：</span><br>' + data.failures.map(f => '• ' + f).join('<br>');
+                    }
+                    resultEl.innerHTML = html;
+                    fileInput.value = '';
+                    loadStats();
+                } else {
+                    resultEl.innerHTML = '<span style="color:red;">❌ ' + (data.error || '导入失败') + '</span>';
+                }
+            } catch(e) {
+                resultEl.innerHTML = '<span style="color:red;">❌ 网络错误</span>';
+            }
+        }
+
+        async function importAdmins() {
+            const fileInput = document.getElementById('adminFileInput');
+            const resultEl = document.getElementById('importAdminResult');
+            if (!fileInput.files[0]) { resultEl.innerHTML = '<span style="color:red;">请选择文件</span>'; return; }
+            
+            resultEl.innerHTML = '正在导入...';
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/import-admins', {
+                    method: 'POST',
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    let html = `<span style="color:green;">✅ ${data.message}</span>`;
+                    if (data.failures && data.failures.length > 0) {
+                        html += '<br><span style="color:#e74c3c;">失败明细：</span><br>' + data.failures.map(f => '• ' + f).join('<br>');
+                    }
+                    resultEl.innerHTML = html;
+                    fileInput.value = '';
+                } else {
+                    resultEl.innerHTML = '<span style="color:red;">❌ ' + (data.error || '导入失败') + '</span>';
+                }
+            } catch(e) {
+                resultEl.innerHTML = '<span style="color:red;">❌ 网络错误</span>';
+            }
+        }
+
+        // ====== Manual Import ======
+        var miType = 'student';
+        var miRecords = [];
+
+        function openManualImport() {
+            document.getElementById('manualImportModal').style.display = 'flex';
+            miRecords = [];
+            updateMITable();
+            document.getElementById('miError').style.display = 'none';
+        }
+
+        function closeManualImport() {
+            document.getElementById('manualImportModal').style.display = 'none';
+        }
+
+        function switchMITab(type) {
+            miType = type;
+            document.getElementById('miTabStudent').classList.toggle('active', type === 'student');
+            document.getElementById('miTabAdmin').classList.toggle('active', type === 'admin');
+            document.getElementById('miStudentForm').style.display = type === 'student' ? 'block' : 'none';
+            document.getElementById('miAdminForm').style.display = type === 'admin' ? 'block' : 'none';
+            document.getElementById('miError').style.display = 'none';
+        }
+
+        function addManualRecord() {
+            var err = document.getElementById('miError');
+            err.style.display = 'none';
+            if (miType === 'student') {
+                var name = document.getElementById('misName').value.trim();
+                var id = document.getElementById('misId').value.trim();
+                var gender = document.getElementById('misGender').value;
+                var oriClass = document.getElementById('misOriClass').value.trim();
+                var major = document.getElementById('misMajor').value;
+                var cls = document.getElementById('misClass').value.trim();
+                if (!name || !id || !oriClass || !major) { err.textContent = '请填写所有必填字段'; err.style.display = 'block'; return; }
+                if (!/^\d{10}$/.test(id)) { err.textContent = '学号必须为10位数字'; err.style.display = 'block'; return; }
+                if (miRecords.some(function(r){ return r.student_id === id; })) { err.textContent = '学号已存在：' + id; err.style.display = 'block'; return; }
+                miRecords.push({type:'student', name:name, student_id:id, gender:gender, original_class:oriClass, major:major, class_name:oriClass});
+                document.getElementById('misName').value = ''; document.getElementById('misId').value = '';
+                document.getElementById('misGender').value = ''; document.getElementById('misOriClass').value = '';
+                document.getElementById('misMajor').value = ''; document.getElementById('misName').focus();
+            } else {
+                var aname = document.getElementById('miaName').value.trim();
+                var auser = document.getElementById('miaUser').value.trim();
+                var apwd = document.getElementById('miaPwd').value.trim();
+                if (!aname || !auser || !apwd) { err.textContent = '请填写所有必填字段'; err.style.display = 'block'; return; }
+                if (miRecords.some(function(r){ return r.username === auser; })) { err.textContent = '账号已存在：' + auser; err.style.display = 'block'; return; }
+                miRecords.push({type:'admin', display_name:aname, username:auser, password:apwd});
+                document.getElementById('miaName').value = ''; document.getElementById('miaUser').value = '';
+                document.getElementById('miaPwd').value = ''; document.getElementById('miaName').focus();
+            }
+            updateMITable();
+        }
+
+        function removeMIRecord(idx) {
+            miRecords.splice(idx, 1);
+            updateMITable();
+        }
+
+        function updateMITable() {
+            var head = document.getElementById('miRecordHead');
+            var body = document.getElementById('miRecordBody');
+            var hasStudent = miRecords.some(function(r){return r.type==='student'});
+            var hasAdmin = miRecords.some(function(r){return r.type==='admin'});
+            var showType = hasStudent && hasAdmin;
+            head.innerHTML = showType ? '<th>类型</th><th>关键信息</th><th>操作</th>' : '<th>关键信息</th><th>操作</th>';
+            body.innerHTML = '';
+            if (miRecords.length === 0) {
+                body.innerHTML = '<tr><td colspan="99" style="text-align:center;color:#999;padding:20px;">暂无记录</td></tr>';
+            } else {
+                miRecords.forEach(function(r,i){
+                    var typeStr = showType ? '<td>'+ (r.type==='student'?'学生':'管理员') +'</td>' : '';
+                    var info = r.type==='student'
+                        ? r.name + ' / ' + r.student_id + ' / ' + r.major + ' / ' + r.original_class
+                        : r.display_name + ' / ' + r.username;
+                    body.innerHTML += '<tr style="border-bottom:1px solid #eee;">' + typeStr + '<td style="padding:6px 8px;">'+info+'</td><td style="padding:6px 8px;"><button onclick="removeMIRecord('+i+')" style="color:#e74c3c;background:none;border:none;cursor:pointer;font-size:12px;">删除</button></td></tr>';
+                });
+            }
+            document.getElementById('miCount').textContent = '共 ' + miRecords.length + ' 条记录';
+            var btn = document.getElementById('miSubmitBtn');
+            btn.textContent = '提交导入 (' + miRecords.length + '条)';
+            btn.disabled = miRecords.length === 0;
+        }
+
+        async function submitManualImport() {
+            if (miRecords.length === 0) return;
+            var btn = document.getElementById('miSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+            try {
+                var res = await fetch(API_BASE + '/api/admin/manual-import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify({records: miRecords})
+                });
+                var data = await res.json();
+                if (res.ok) {
+                    alert('导入成功！共导入 ' + data.imported + ' 条');
+                    miRecords = [];
+                    updateMITable();
+                    closeManualImport();
+                    if (typeof loadAccounts === 'function') loadAccounts();
+                } else {
+                    document.getElementById('miError').textContent = data.error || '导入失败';
+                    document.getElementById('miError').style.display = 'block';
+                }
+            } catch(e) {
+                document.getElementById('miError').textContent = '网络错误，请重试';
+                document.getElementById('miError').style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = '提交导入 (' + miRecords.length + '条)';
+        }
+
+        // ====== Modify Admin Name ======
+        function openNameModal() {
+            document.getElementById('newAdminName').value = localStorage.getItem('admin_name') || '管理员';
+            document.getElementById('nameError').textContent = '';
+            document.getElementById('nameModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('newAdminName').focus(), 100);
+        }
+
+        async function saveAdminName() {
+            const name = document.getElementById('newAdminName').value.trim();
+            const errEl = document.getElementById('nameError');
+            if (!name) { errEl.textContent = '姓名不能为空'; return; }
+            if (name.length > 20) { errEl.textContent = '姓名不能超过20个字符'; return; }
+
+            try {
+                const res = await fetch(API_BASE + '/api/admin/name', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ displayName: name })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('admin_name', name);
+                    document.getElementById('adminDisplayName').textContent = name;
+                    document.getElementById('nameModal').style.display = 'none';
+                } else {
+                    errEl.textContent = data.error || '修改失败';
+                }
+            } catch(e) {
+                errEl.textContent = '网络错误，请重试';
+            }
+        }
+
+        // ====== Student Lock/Unlock Management ======
+        async function loadLockedList() {
+            try {
+                const res = await fetch(API_BASE + '/api/admin/students', {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+                });
+                const students = await res.json();
+                const locked = students.filter(s => s.locked === 1);
+                const el = document.getElementById('lockedList');
+                if (locked.length === 0) {
+                    el.innerHTML = '<div style="padding:8px;color:var(--success);">✓ 当前没有被锁定的账户</div>';
+                } else {
+                    el.innerHTML = locked.map(s => 
+                        `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fce8e6;border-radius:6px;font-size:13px;margin-bottom:6px;">
+                            <span><b>${s.student_id}</b> ${s.name} | ${s.gender} | ${s.major}</span>
+                            <button onclick="unlockStudent('${s.student_id}')" class="btn btn-primary" style="width:auto;padding:6px 14px;font-size:13px;">解锁</button>
+                        </div>`
+                    ).join('');
+                }
+            } catch(e) { console.error('Failed to load locked list'); }
+        }
+        async function unlockStudent(sid) {
+            if (!confirm('确认解锁学号 ' + sid + ' 并重置密码为学号？')) return;
+            try {
+                const res = await fetch(API_BASE + '/api/admin/unlock', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json','Authorization':'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify({studentId: sid})
+                });
+                const d = await res.json();
+                alert(d.message || '操作成功');
+                loadLockedList();
+            } catch(e) { alert('操作失败'); }
+        }
+
+        // ====== 加载统计数据 ======
+        async function loadStats() {
+            const res = await fetch(API_BASE + '/api/admin/stats', { headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')} });
+            if (!res.ok) return;
+            const d = await res.json();
+
+            document.getElementById('totalStudents').textContent = d.total_students;
+            document.getElementById('totalSubmitted').textContent = d.total_submitted;
+            document.getElementById('totalUnfilled').textContent = d.total_unfilled;
+            document.getElementById('bigdataCount').textContent = d.bigdata_count;
+            document.getElementById('cloudCount').textContent = d.cloud_count;
+
+            function makeBar(canvasId, labels, values, colors){
+                var ctx = document.getElementById(canvasId);
+                if(!ctx) return null;
+                return new Chart(ctx, {
+                    type:'bar',
+                    data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderRadius:8}]},
+                    options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+                        layout:{padding:{top:20}},plugins:{legend:{display:false}},
+                        scales:{y:{beginAtZero:true,ticks:{stepSize:1,callback:function(v){return v+'人'}},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}
+                    }
+                });
+            }
+
+            function makePie(canvasId, labels, values, colors){
+                var ctx = document.getElementById(canvasId);
+                if(!ctx) return null;
+                return new Chart(ctx, {
+                    type:'pie',
+                    data:{labels:labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},
+                    options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+                        plugins:{legend:{position:'bottom',labels:{padding:10,font:{size:12},usePointStyle:true,pointStyleWidth:8}},
+                            tooltip:{callbacks:{label:function(ctx){
+                                var t=ctx.dataset.data.reduce(function(a,b){return a+b},0);
+                                var p=t>0?(ctx.parsed/t*100).toFixed(1):'0.0';
+                                return ctx.label+': '+ctx.parsed+'人 ('+p+'%)';
+                            }}}
+                        }
+                    }
+                });
+            }
+
+            // Big Data
+            var bdL=d.bigdata_direction_stats.map(function(s){return s.name});
+            var bdV=d.bigdata_direction_stats.map(function(s){return s.count});
+            if(aBdBarChart)aBdBarChart.destroy();
+            aBdBarChart=makeBar('aBdBarChart',bdL,bdV,['#2ED573','#1E90FF','#FF4757']);
+            if(aBdPieChart)aBdPieChart.destroy();
+            aBdPieChart=makePie('aBdPieChart',bdL.concat(['未填报']),bdV.concat([d.bigdata_unfilled]),['#2ED573','#1E90FF','#FF4757','#DFE4EA']);
+
+            // Cloud
+            var ccL=d.cloud_direction_stats.map(function(s){return s.name});
+            var ccV=d.cloud_direction_stats.map(function(s){return s.count});
+            if(aCcBarChart)aCcBarChart.destroy();
+            aCcBarChart=makeBar('aCcBarChart',ccL,ccV,['#00D2D3','#A855F7']);
+            if(aCcPieChart)aCcPieChart.destroy();
+            aCcPieChart=makePie('aCcPieChart',ccL.concat(['未填报']),ccV.concat([d.cloud_unfilled]),['#00D2D3','#A855F7','#DFE4EA']);
+
+            updateStatsTable(d.detail_stats);
+        }
+
+        // ====== 更新柱状图 ======
+        function updateBarChart(directionStats, unfilledCount) {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            
+            const colors = [
+                '#FF4757', '#2ED573', '#1E90FF', '#FFA502',
+                '#A855F7', '#00D2D3', '#A8E6CF', '#DFE4EA'
+            ];
+            
+            // Add unfilled to labels/values
+            const labels = [...directionStats.map(d => d.name), '未填报'];
+            const values = [...directionStats.map(d => d.count), unfilledCount];
+            
+            if (statsChart) {
+                statsChart.destroy();
+            }
+            
+            statsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '第一志愿人数',
+                        data: values,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: colors.slice(0, labels.length),
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    onClick: function(e, elements) {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            showDirectionDetail(labels[idx]);
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' 人';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value + '人';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                maxRotation: 30,
+                                minRotation: 0,
+                                font: { size: 12 }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: { top: 10, bottom: 0, left: 0, right: 10 }
+                    }
+                },
+                plugins: [{
+                    id: 'barLabels',
+                    afterDraw(chart) {
+                        const { ctx } = chart;
+                        const meta = chart.getDatasetMeta(0);
+                        ctx.save();
+                        ctx.font = 'bold 14px "Microsoft YaHei", sans-serif';
+                        ctx.fillStyle = '#fff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        meta.data.forEach((bar, i) => {
+                            const val = chart.data.datasets[0].data[i];
+                            if (val === 0) return;
+                            const midY = (bar.y + bar.base) / 2;
+                            ctx.fillText(val + '人', bar.x, midY);
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        // ====== 更新饼状图 ======
+        function updatePieChart(directionStats, unfilledCount, totalStudents) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            
+            const colors = [
+                '#FF4757', '#2ED573', '#1E90FF', '#FFA502',
+                '#A855F7', '#00D2D3', '#A8E6CF', '#DFE4EA'
+            ];
+            
+            if (pieChart) pieChart.destroy();
+            
+            const labels = [...directionStats.map(d => d.name), '未填报'];
+            const values = [...directionStats.map(d => d.count), unfilledCount];
+            const total = totalStudents;
+            
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 16, font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const pct = total > 0 ? (ctx.parsed / total * 100).toFixed(1) : 0;
+                                    return ctx.label + ': ' + ctx.parsed + ' 人 (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'pieLabels',
+                    afterDraw(chart) {
+                        const { ctx, data, chartArea } = chart;
+                        const meta = chart.getDatasetMeta(0);
+                        if (!meta || meta.hidden) return;
+
+                        ctx.save();
+                        // Title on top
+                        ctx.font = 'bold 15px "Microsoft YaHei", sans-serif';
+                        ctx.fillStyle = '#333';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText('共 ' + total + ' 人填报', chartArea.left + (chartArea.right - chartArea.left) / 2, chartArea.top - 5);
+                        
+                        // Labels on each slice
+                        meta.data.forEach((arc, i) => {
+                            const val = data.datasets[0].data[i];
+                            const pct = total > 0 ? (val / total * 100).toFixed(1) : 0;
+                            if (val === 0) return;
+
+                            const angle = (arc.startAngle + arc.endAngle) / 2;
+                            const r = (arc.outerRadius + arc.innerRadius) / 2 * 1.15;
+                            const x = arc.x + Math.cos(angle) * r;
+                            const y = arc.y + Math.sin(angle) * r;
+
+                            ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
+                            ctx.fillStyle = '#333';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(pct + '%', x, y);
+                            ctx.font = '11px "Microsoft YaHei", sans-serif';
+                            ctx.fillStyle = '#666';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText(val + '人', x, y + 2);
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        // ====== 更新详细统计表 ======
+        function updateStatsTable(detailStats) {
+            const tbody = document.getElementById('statsTableBody');
+            tbody.innerHTML = '';
+            
+            const colors = {
+                '大数据VR方向': '#FF4757',
+                '大数据分析运维': '#2ED573',
+                '大数据应用开发': '#1E90FF',
+                '新媒体技术方向': '#A855F7',
+                '云计算运维与安全': '#00D2D3'
+            };
+            
+            detailStats.forEach(row => {
+                const tr = document.createElement('tr');
+                const color = colors[row.name] || '#ccc';
+                tr.innerHTML = `
+                    <td><span class="dir-dot" style="background:${color}"></span>${row.name}</td>
+                    <td><strong>${row.rank1}</strong></td>
+                    <td>${row.rank2}</td>
+                    <td>${row.rank3 || '-'}</td>
+                    <td>${row.rank4 || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ====== 加载时间设置 ======
+        async function loadSettings() {
+            try {
+                const res = await fetch(API_BASE + '/api/admin/settings', {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+                });
+                const data = await res.json();
+                
+                if (data.start_time) {
+                    document.getElementById('startTime').value = data.start_time.substring(0, 16);
+                }
+                if (data.end_time) {
+                    document.getElementById('endTime').value = data.end_time.substring(0, 16);
+                }
+            } catch (err) {
+                console.error('加载设置失败', err);
+            }
+        }
+
+        // ====== 保存时间设置 ======
+        async function saveTimeSettings() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            if (!startTime || !endTime) {
+                showTimeStatus('请填写完整的时间', 'error');
+                return;
+            }
+            if (startTime >= endTime) {
+                showTimeStatus('截止时间必须晚于开始时间', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        start_time: startTime + ':00',
+                        end_time: endTime + ':00'
+                    })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showTimeStatus('时间设置已保存', 'success');
+                } else {
+                    showTimeStatus(data.error, 'error');
+                }
+            } catch (err) {
+                showTimeStatus('保存失败', 'error');
+            }
+        }
+
+        // ====== 导出数据 ======
+        async function exportData(type) {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            // Use window.open with token in URL for preview/download compatibility
+            const url = API_BASE + '/api/admin/export?type=' + type + '&token=' + encodeURIComponent(token);
+            window.open(url, '_blank');
+            showTimeStatus('导出已开始！', 'success');
+        }
+
+        async function exportStudentsInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            window.open(API_BASE + '/api/admin/export/students?token=' + encodeURIComponent(token), '_blank');
+            showTimeStatus('导出已开始！', 'success');
+        }
+
+        function showTimeStatus(msg, type) {
+            const el = document.getElementById('timeSettingsStatus');
+            el.textContent = msg;
+            el.className = 'status-msg ' + type;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        // ====== 学生搜索 ======
+        async function searchStudent() {
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            if (!keyword) return;
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/search-student', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({keyword})
+                });
+                const data = await res.json();
+                
+                const tableDiv = document.getElementById('searchResultTable');
+                
+                if (!res.ok) {
+                    document.getElementById('searchStatus').textContent = data.error;
+                    document.getElementById('searchStatus').className = 'status-msg error';
+                    tableDiv.style.display = 'none';
+                    return;
+                }
+                
+                document.getElementById('searchStatus').textContent = '';
+                document.getElementById('searchStatus').className = 'status-msg';
+                
+                let html = `<table class="stats-table"><thead><tr>
+                    <th>学号</th><th>姓名</th><th>性别</th><th>专业</th><th>密码</th><th>志愿</th><th>操作</th>
+                </tr></thead><tbody>`;
+                
+                data.students.forEach(s => {
+                    const prefs = [s.rank1, s.rank2, s.rank3, s.rank4].filter(Boolean).join(' / ') || '未填报';
+                    const pwdClass = s.is_default ? 'color:#f39c12;' : '';
+                    html += `<tr>
+                        <td>${s.student_id}</td>
+                        <td><strong>${s.name}</strong></td>
+                        <td>${s.gender}</td>
+                        <td>${s.major}</td>
+                        <td style="${pwdClass}">${s.password}</td>
+                        <td style="font-size:12px;">${prefs}</td>
+                        <td><button class="btn-reset-pwd" onclick="resetPassword('${s.student_id}','${s.name}')">重置密码</button></td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table>';
+                tableDiv.innerHTML = html;
+                tableDiv.style.display = 'block';
+                
+            } catch (err) {
+                showSearchStatus('搜索失败', 'error');
+            }
+        }
+        
+        async function resetPassword(studentId, name) {
+            if (!confirm('确定将「' + name + '」的密码重置为默认密码（学号）吗？')) return;
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({studentId: studentId})
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showSearchStatus(name + ' 密码已重置为：' + data.new_password, 'success');
+                    searchStudent(); // 刷新搜索结果
+                } else {
+                    showSearchStatus(data.error, 'error');
+                }
+            } catch (err) {
+                showSearchStatus('重置失败', 'error');
+            }
+        }
+        
+        function showSearchStatus(msg, type) {
+            const el = document.getElementById('searchStatus');
+            el.textContent = msg;
+            el.className = 'status-msg ' + type;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // ====== 一键初始化 ======
+        function resetAllConfirm() {
+            if (!confirm('确定要清空所有学生的志愿数据吗？\n\n所有已填报的数据将被删除，密码也将重置为默认。\n\n此操作不可撤销！')) return;
+            document.getElementById('resetPassword').value = '';
+            document.getElementById('resetError').textContent = '';
+            document.getElementById('resetModal').style.display = 'flex';
+        }
+
+        async function doResetAll() {
+            const pwd = document.getElementById('resetPassword').value;
+            if (!pwd) {
+                document.getElementById('resetError').textContent = '请输入管理员密码';
+                return;
+            }
+            try {
+                const res = await fetch(API_BASE + '/api/admin/reset-all-preferences', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({password: pwd})
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    document.getElementById('resetModal').style.display = 'none';
+                    loadStats(); // 刷新统计
+                } else {
+                    document.getElementById('resetError').textContent = data.error;
+                }
+            } catch (err) {
+                document.getElementById('resetError').textContent = '操作失败';
+            }
+        }
+
+        // ====== 统计卡片详情 ======
+        async function showStatDetail(type) {
+            const titles = {
+                'total': '全部学生',
+                'submitted': '已填报学生',
+                'unfilled': '未填报学生',
+                'bigdata': '大数据专业学生',
+                'cloud': '云计算专业学生'
+            };
+            
+            try {
+                const res = await fetch(API_BASE + '/api/admin/stat-detail?type=' + type, {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+                });
+                const data = await res.json();
+                
+                if (!res.ok) { alert(data.error); return; }
+                
+                document.getElementById('detailTitle').textContent = titles[type] + ' (' + data.count + '人)';
+                
+                let html = '<thead><tr><th>学号</th><th>姓名</th><th>性别</th><th>专业</th>';
+                if (type === 'submitted') html += '<th>填报时间</th>';
+                html += '</tr></thead><tbody>';
+                
+                data.students.forEach(s => {
+                    html += `<tr>
+                        <td>${s.student_id}</td>
+                        <td><strong>${s.name}</strong></td>
+                        <td>${s.gender}</td>
+                        <td>${s.major}</td>`;
+                    if (type === 'submitted') html += `<td>${s.updated_at}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody>';
+                document.getElementById('detailTable').innerHTML = html;
+                document.getElementById('detailModal').style.display = 'flex';
+                window._currentStatType = type;
+                
+            } catch (err) {
+                alert('加载失败，请重试');
+            }
+        }
+
+        // ====== 点击柱子查看方向明细 ======
+        async function showDirectionDetail(direction) {
+            try {
+                const res = await fetch(API_BASE + '/api/admin/direction-detail?direction=' + encodeURIComponent(direction), {
+                    headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error); return; }
+
+                document.getElementById('detailTitle').textContent = direction + ' — 第一志愿 (' + data.count + '人)';
+                
+                let html = '<thead><tr><th>学号</th><th>姓名</th><th>性别</th><th>专业</th><th>班级</th></tr></thead><tbody>';
+                data.students.forEach(s => {
+                    html += `<tr>
+                        <td>${s.student_id}</td>
+                        <td><strong>${s.name}</strong></td>
+                        <td>${s.gender||'-'}</td>
+                        <td>${s.major||'-'}</td>
+                        <td>${s.class_name||'-'}</td>
+                    </tr>`;
+                });
+                html += '</tbody>';
+                document.getElementById('detailTable').innerHTML = html;
+                document.getElementById('detailModal').style.display = 'flex';
+                window._currentStatType = null;
+                window._currentDirection = direction;
+            } catch(e) {
+                alert('加载失败，请重试');
+            }
+        }
+
+        async function exportCurrentDetail() {
+            const token = localStorage.getItem('token');
+            // Try stat type first, then direction type
+            const statType = window._currentStatType;
+            const dirName = window._currentDirection;
+            
+            if (statType) {
+                window.open(API_BASE + '/api/admin/export-stat-detail?type=' + statType + '&token=' + encodeURIComponent(token), '_blank');
+            } else if (dirName) {
+                window.open(API_BASE + '/api/admin/export-direction-detail?direction=' + encodeURIComponent(dirName) + '&token=' + encodeURIComponent(token), '_blank');
+            }
+        }
+    
+
+</script>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-bar" id="bottomBar">
+  <div class="bb-item active" data-tab="dashboard" onclick="switchAdminTab('dashboard', this)">
+    <svg class="bb-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="8" rx="1"/><rect x="14" y="3" width="7" height="8" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="bb-text">看板</span>
+  </div>
+  <div class="bb-item" data-tab="students" onclick="switchAdminTab('students', this)">
+    <svg class="bb-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+    <span class="bb-text">学生</span>
+  </div>
+  <div class="bb-indicator"></div>
+</div>
+
+<script>
+// Bottom bar tab switching
+window.switchAdminTab = function(tab, el) {
+  document.querySelectorAll('.bb-item').forEach(item => item.classList.remove('active'));
+  el.classList.add('active');
+  
+  const adminContent = document.getElementById('adminContent');
+  const searchSection = document.getElementById('passwordSection');
+  const tableSection = document.querySelector('.table-section');
+  const settingsSection = document.querySelector('.settings-section');
+  const exportSection = document.querySelector('.export-section');
+  const lockedSection = document.getElementById('lockedSection');
+  
+  if (tab === 'dashboard') {
+    // Show all dashboard content
+    if (tableSection) tableSection.style.display = '';
+    if (settingsSection) settingsSection.style.display = '';
+    if (exportSection) exportSection.style.display = '';
+    if (searchSection) searchSection.style.display = '';
+    if (lockedSection) lockedSection.style.display = '';
+  } else {
+    // Show only student search/lock sections
+    if (tableSection) tableSection.style.display = 'none';
+    if (settingsSection) settingsSection.style.display = 'none';
+    if (exportSection) exportSection.style.display = 'none';
+    if (searchSection) searchSection.style.display = '';
+    if (lockedSection) lockedSection.style.display = '';
+    // Scroll to search
+    if (searchSection) searchSection.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+// Add padding to main container for bottom bar
+document.addEventListener('DOMContentLoaded', function() {
+  var mc = document.querySelector('.main-container');
+  if (mc && localStorage.getItem('admin_role') === 'super') mc.style.paddingBottom = '100px';
+});
+</script>
+
+</body>
+</html>
